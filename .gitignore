@@ -1,0 +1,30 @@
+# Abhängigkeiten – müssen auf dem Zielrechner neu installiert werden.
+# WICHTIG: apps/druck/node_modules enthält nativ kompilierte Module
+# (sqlite3, bcrypt). Die sind für Windows gebaut und laufen auf keinem
+# anderen System – niemals mit einchecken.
+node_modules/
+
+# Datenbanken der Demo-Fassungen. Entstehen beim ersten Start von selbst
+# und werden mit Beispieldaten gefüllt.
+apps/druck/database.sqlite
+apps/druck/database.sqlite.bak-*
+apps/druck/uploads/
+apps/freunde/data/
+
+# Zertifikate und Zugangsdaten gehören nie ins Repository.
+*.pem
+.env
+
+# Schlüssel für Push-Benachrichtigungen. Werden beim ersten Einschalten
+# erzeugt; der private Teil liegt mit in der Datei. Wer ihn hat, kann
+# Benachrichtigungen im Namen dieses Servers verschicken.
+certs/
+vapid.json
+
+# Server-Ausgaben. server.log enthielt zuletzt die IP-Adressen des Rechners
+# im jeweiligen Netz – nichts, was auf GitHub gehört.
+*.log
+
+# Betriebssystem-Krimskrams
+Thumbs.db
+.DS_Store

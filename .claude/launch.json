@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "portfolio",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["server.js"],
+      "port": 4100
+    },
+    {
+      "name": "docs",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["docs-preview.js"],
+      "port": 4200
+    }
+  ]
+}

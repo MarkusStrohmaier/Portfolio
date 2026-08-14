@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dienstplan → Kalender</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+  :root{
+    --paper:#EFF2ED; --card:#FFFFFF; --ink:#141712; --muted:#6B7166;
+    --line:#E1E5DC; --line-2:#EDF0EA;
+    --brand:#0F9D6B; --brand-ink:#0A5C40; --brand-soft:#E4F4EC;
+    --frueh:#E39A1F; --spaet:#E0663C; --nacht:#5457D6; --warn:#D8442F;
+    --shadow:0 1px 2px rgba(20,23,18,.04), 0 4px 16px rgba(20,23,18,.05);
+    --shadow-sm:0 1px 2px rgba(20,23,18,.05);
+    --disp:"Space Grotesk",system-ui,sans-serif;
+    --sans:"Hanken Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif;
+    --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+    --r:14px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:840px;margin:0 auto;padding:26px 16px 80px}
+  .num{font-variant-numeric:tabular-nums}
+  @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+  /* ---------- Header ---------- */
+  header{margin-bottom:22px}
+  .brandline{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+  .pulse{width:9px;height:9px;border-radius:50%;background:var(--brand);position:relative}
+  .pulse::after{content:"";position:absolute;inset:-4px;border-radius:50%;border:1.5px solid var(--brand);opacity:.4;animation:ring 2.4s ease-out infinite}
+  @keyframes ring{0%{transform:scale(.6);opacity:.5}100%{transform:scale(1.8);opacity:0}}
+  .brandline span{font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--brand-ink);font-weight:600}
+  h1{font-family:var(--disp);font-size:32px;line-height:1.06;margin:0 0 8px;font-weight:700;letter-spacing:-.025em}
+  .sub{margin:0;color:var(--muted);font-size:15px;max-width:56ch}
+  .ekg{display:block;width:100%;height:32px;margin-top:16px;color:var(--brand);opacity:.85}
+
+  /* ---------- Hero ---------- */
+  .hero{background:var(--ink);color:#fff;border-radius:var(--r);padding:18px 22px;margin:18px 0;display:flex;align-items:center;gap:20px;flex-wrap:wrap;box-shadow:var(--shadow);position:relative;overflow:hidden}
+  .hero::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--brand)}
+  .hero.empty{display:none}
+  .hero-lab{font-family:var(--mono);font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:#8E958A;margin-bottom:5px}
+  .hero-big{font-family:var(--disp);font-size:24px;font-weight:600;letter-spacing:-.01em;line-height:1.12}
+  .hero-time{font-family:var(--disp);font-size:25px;font-weight:600;margin-left:auto;text-align:right}
+  .hero-time small{display:block;font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:#8E958A;font-weight:400;margin-top:4px}
+  .hero-count{font-family:var(--mono);font-size:12px;color:#5FD3A6;letter-spacing:.04em;margin-top:4px}
+
+  /* ---------- Karten ---------- */
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:20px;margin-bottom:16px;box-shadow:var(--shadow-sm)}
+  .card > h2{font-family:var(--mono);font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin:0 0 16px;font-weight:600;display:flex;align-items:center;gap:10px}
+  .card > h2 b{width:20px;height:20px;border-radius:7px;background:var(--brand-soft);color:var(--brand-ink);display:grid;place-items:center;font-family:var(--disp);font-size:11px;font-weight:700;flex:none}
+
+  label.lbl,.field label,.edit label{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+  textarea,input,select{width:100%;background:#fff;color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:11px 13px;font-family:var(--sans);font-size:14px;transition:border-color .12s,box-shadow .12s}
+  textarea{min-height:110px;resize:vertical;font-family:var(--mono);font-size:12.5px;line-height:1.75;white-space:pre;overflow-x:auto}
+  textarea::placeholder{color:#AEB4A7}
+  input:focus,textarea:focus,select:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-soft)}
+
+  /* ---------- Dropzone ---------- */
+  .drop{border:1.5px dashed var(--line);border-radius:12px;padding:26px 16px;text-align:center;position:relative;transition:.15s;margin-bottom:16px;background:#FBFCFA}
+  .drop:hover{border-color:#C4CBBD}
+  .drop.hot{border-color:var(--brand);background:var(--brand-soft)}
+  .drop.busy{border-style:solid;border-color:var(--brand);background:var(--brand-soft)}
+  .drop input{position:absolute;inset:0;opacity:0;cursor:pointer}
+  .drop.busy input{pointer-events:none}
+  .drop .ico{width:34px;height:34px;margin:0 auto 8px;color:var(--brand)}
+  .drop b{display:block;font-family:var(--disp);font-size:16px;margin-bottom:3px;font-weight:600}
+  .drop span{font-size:12.5px;color:var(--muted);font-family:var(--mono);letter-spacing:.02em}
+  .drop .busywrap{display:none;align-items:center;justify-content:center;gap:10px}
+  .drop.busy .idle{display:none}
+  .drop.busy .busywrap{display:flex}
+  .spin{width:18px;height:18px;border:2.5px solid var(--brand-soft);border-top-color:var(--brand);border-radius:50%;animation:sp .7s linear infinite}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  .drop .busywrap b{font-size:14px;color:var(--brand-ink);margin:0}
+  .fname{font-family:var(--mono);font-size:11.5px;color:var(--brand-ink);margin-top:9px}
+  .fname:empty{display:none}
+
+  .rawlabel{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px}
+  .rawlabel .lbl{margin:0}
+  .rawlabel a{font-family:var(--mono);font-size:11px;color:var(--brand);text-decoration:none;cursor:pointer}
+
+  .fields{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+  @media(max-width:560px){.fields{grid-template-columns:1fr}}
+
+  .btns{display:flex;gap:9px;flex-wrap:wrap;margin-top:16px}
+  button{font-family:var(--sans);font-weight:600;font-size:14px;border-radius:10px;padding:11px 18px;cursor:pointer;border:1px solid transparent;transition:.12s}
+  button:disabled{opacity:.4;cursor:not-allowed}
+  .primary{background:var(--brand);color:#fff;box-shadow:0 1px 2px rgba(15,157,107,.3)}
+  .primary:hover:not(:disabled){background:#0C875C}
+  .ghost{background:#fff;color:var(--ink);border-color:var(--line)}
+  .ghost:hover:not(:disabled){border-color:var(--muted)}
+  button:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+  .hint{font-size:12.5px;color:var(--muted);margin-top:12px;line-height:1.6}
+
+  /* ---------- Statistik ---------- */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+  .stats.hide{display:none}
+  .stat{background:#fff;border:1px solid var(--line);border-radius:12px;padding:15px 16px;box-shadow:var(--shadow-sm)}
+  .stat .n{font-family:var(--disp);font-size:24px;font-weight:700;letter-spacing:-.02em;line-height:1}
+  .stat .l{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:7px}
+  .stat .split{display:flex;gap:5px;align-items:baseline}
+  .stat .split i{width:8px;height:8px;border-radius:2px;display:inline-block}
+  @media(max-width:560px){.stats{grid-template-columns:1fr 1fr}}
+
+  /* ---------- Toolbar ---------- */
+  .toolbar{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+  .seg{display:inline-flex;background:#F4F6F1;border:1px solid var(--line);border-radius:11px;padding:3px}
+  .seg button{padding:7px 17px;border-radius:8px;font-size:13px;background:transparent;color:var(--muted);border:none;font-weight:600}
+  .seg button.on{background:#fff;color:var(--ink);box-shadow:var(--shadow-sm)}
+  .legend{display:flex;gap:16px;flex-wrap:wrap;margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--muted)}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .legend i{width:10px;height:10px;border-radius:3px}
+  @media(max-width:560px){.legend{margin-left:0;width:100%}}
+
+  /* ---------- Warnungen ---------- */
+  .warn,.info{padding:10px 14px;border-radius:10px;font-size:13px;margin-bottom:8px;display:flex;gap:9px;align-items:flex-start}
+  .warn{background:#FCEEEB;color:#7A2417} .warn::before{content:"!";font-family:var(--disp);font-weight:700;color:var(--warn)}
+  .info{background:var(--brand-soft);color:var(--brand-ink)} .info::before{content:"i";font-family:var(--disp);font-weight:700}
+  .warn code{font-family:var(--mono);font-size:12px}
+  .empty{color:var(--muted);font-size:14px;font-family:var(--mono);text-align:center;padding:26px}
+
+  /* ---------- Schicht-Karten ---------- */
+  .shift{border:1px solid var(--line);border-radius:12px;background:#fff;padding:14px 16px;margin-bottom:10px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden;transition:box-shadow .12s}
+  .shift::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--line)}
+  .shift[data-t="frueh"]::before{background:var(--frueh)}
+  .shift[data-t="spaet"]::before{background:var(--spaet)}
+  .shift[data-t="nacht"]::before{background:var(--nacht)}
+  .shift:hover{box-shadow:var(--shadow)}
+  .s-top{display:flex;align-items:center;gap:11px;flex-wrap:wrap;padding-left:6px}
+  .s-day{font-family:var(--disp);font-size:15px;font-weight:600;min-width:118px}
+  .s-day small{font-family:var(--mono);font-size:10.5px;color:var(--muted);font-weight:400;margin-right:7px;text-transform:uppercase}
+  .tag{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;padding:3px 9px;border-radius:20px;font-weight:600}
+  .tag[data-t="frueh"]{background:#FBEECE;color:#8A5A08}
+  .tag[data-t="spaet"]{background:#FADED4;color:#8A3418}
+  .tag[data-t="nacht"]{background:#E1E1FB;color:#2E2FA0}
+  .s-time{font-family:var(--disp);font-size:16px;font-weight:600;margin-left:auto;letter-spacing:-.01em}
+  .s-acts{display:flex;gap:2px}
+  .iconbtn{background:none;border:none;color:var(--muted);font-size:12.5px;padding:5px 9px;font-family:var(--mono);cursor:pointer;border-radius:7px}
+  .iconbtn:hover{color:var(--ink);background:var(--line-2)}
+  .iconbtn.rm:hover{color:var(--warn);background:#FCEEEB}
+  .band{position:relative;height:9px;border-radius:5px;background:#F0F2ED;overflow:hidden;margin:12px 0 0 6px}
+  .band i{position:absolute;top:0;bottom:0}
+  .band i[data-t="frueh"]{background:var(--frueh)} .band i[data-t="spaet"]{background:var(--spaet)} .band i[data-t="nacht"]{background:var(--nacht)}
+  .band .tick{position:absolute;top:0;bottom:0;width:1px;background:#DBDED6}
+  .s-meta{font-family:var(--mono);font-size:11.5px;color:var(--muted);margin:9px 0 0 6px;display:flex;gap:14px;flex-wrap:wrap}
+  .s-meta b{color:var(--ink);font-weight:600}
+
+  /* ---------- Editor ---------- */
+  .edit{margin:13px 0 2px 6px;padding-top:14px;border-top:1px dashed var(--line);display:grid;grid-template-columns:1fr 1fr 1fr;gap:11px}
+  .edit .full{grid-column:1/-1}
+  @media(max-width:560px){.edit{grid-template-columns:1fr 1fr}}
+  .edit .row{grid-column:1/-1;display:flex;gap:8px;margin-top:2px}
+
+  /* ---------- Monatsansicht ---------- */
+  .month{margin-bottom:24px}
+  .month h3{font-family:var(--disp);font-size:19px;font-weight:600;margin:0 0 12px;letter-spacing:-.015em}
+  .month h3 span{font-family:var(--mono);font-size:12px;color:var(--muted);font-weight:400;margin-left:9px}
+  .grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+  .wdh{font-family:var(--mono);font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);text-align:center;padding-bottom:3px}
+  .cell{aspect-ratio:1;border:1px solid var(--line-2);border-radius:9px;padding:6px 7px;font-family:var(--disp);font-size:13px;font-weight:600;position:relative;background:#fff;min-height:46px}
+  .cell.pad{background:transparent;border:none}
+  .cell.wknd{background:#F7F9F4}
+  .cell .chip{position:absolute;left:5px;right:5px;bottom:5px;border-radius:6px;padding:2px 4px;font-family:var(--mono);font-size:9.5px;font-weight:600;color:#fff;line-height:1.35;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .cell .chip[data-t="frueh"]{background:var(--frueh)} .cell .chip[data-t="spaet"]{background:var(--spaet)} .cell .chip[data-t="nacht"]{background:var(--nacht)}
+
+  #out{display:none;margin-top:14px}
+  #out textarea{min-height:130px;font-size:11px;color:var(--muted);white-space:pre-wrap}
+  .status{font-family:var(--mono);font-size:12px;margin-top:12px;min-height:16px}
+  .ok{color:var(--brand-ink)}
+  details{margin-top:18px}
+  details summary{cursor:pointer;font-size:13.5px;color:var(--muted);font-family:var(--mono)}
+  details[open] summary{margin-bottom:11px;color:var(--ink)}
+  ol{padding-left:20px;margin:0;font-size:13.5px;color:var(--muted)}
+  ol li{margin-bottom:8px} ol b{color:var(--ink)}
+  .kbd{font-family:var(--mono);background:#F4F6F1;border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="brandline"><span class="pulse"></span><span>Dienstplan · Schichtimport</span></div>
+    <h1>Deine Schichten im Kalender</h1>
+    <p class="sub">PDF laden, prüfen und anpassen, als Kalenderdatei speichern — für Google&nbsp;Kalender oder Samsung&nbsp;Kalender.</p>
+    <svg class="ekg" viewBox="0 0 600 32" preserveAspectRatio="none" fill="none" aria-hidden="true">
+      <path d="M0 16 H150 l8 -10 l9 20 l8 -26 l10 32 l8 -16 H330 l8 -10 l9 20 l8 -26 l10 32 l8 -16 H600"
+            stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+    </svg>
+  </header>
+
+  <div class="hero empty" id="hero">
+    <div>
+      <div class="hero-lab">Nächster Dienst</div>
+      <div class="hero-big" id="heroBig">–</div>
+      <div class="hero-count" id="heroCount"></div>
+    </div>
+    <div class="hero-time" id="heroTime"></div>
+  </div>
+
+  <div class="card">
+    <h2><b>1</b> Dienstplan laden</h2>
+
+    <label class="drop" id="drop">
+      <div class="idle">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"/><path d="M12 18v-6"/><path d="m9 15 3 3 3-3"/>
+        </svg>
+        <b>PDF hier ablegen oder antippen</b>
+        <span>PDF · TXT · CSV — bleibt auf deinem Gerät</span>
+      </div>
+      <div class="busywrap"><span class="spin"></span><b id="busyText">PDF wird gelesen …</b></div>
+      <input type="file" id="file" accept=".pdf,.txt,.csv,.tsv,application/pdf,text/plain">
+    </label>
+    <div class="fname" id="fname"></div>
+
+    <div class="rawlabel">
+      <span class="lbl">Eingelesener Plan · bearbeitbar</span>
+      <a id="reformat">Spalten ausrichten</a>
+    </div>
+    <textarea id="input" spellcheck="false" placeholder="Nach dem Import erscheinen die Zeilen hier als saubere Tabelle. Du kannst sie ändern oder direkt tippen:
+
+24.07.2026 | RTW | 06:00 | 13:00 | St. Stefan i. R.
+30.07.2026 | RTW | 09:00 | 19:00 | St. Stefan i. R."></textarea>
+
+    <div class="fields">
+      <div class="field"><label for="deftitle">Titel im Kalender</label><input id="deftitle" type="text" value="Dienst"></div>
+      <div class="field"><label for="titlemode">Titel bilden aus</label>
+        <select id="titlemode">
+          <option value="both" selected>Titel + Tätigkeit (Dienst RTW)</option>
+          <option value="col">nur Tätigkeit (RTW)</option>
+          <option value="fix">nur festem Titel</option>
+        </select></div>
+      <div class="field"><label for="loc">Ort (falls im Plan keiner steht)</label><input id="loc" type="text" placeholder="z.B. St. Stefan i. R."></div>
+      <div class="field"><label for="alarm">Erinnerung vorher</label>
+        <select id="alarm">
+          <option value="">keine</option><option value="30">30 Minuten</option>
+          <option value="60" selected>1 Stunde</option><option value="120">2 Stunden</option>
+          <option value="720">12 Stunden</option>
+        </select></div>
+      <div class="field"><label for="year">Jahr (nur falls im Plan keins steht)</label><input id="year" type="number" min="2000" max="2100" value="2026"></div>
+      <div class="field"><label for="rest">Ruhezeit-Warnung unter</label>
+        <select id="rest">
+          <option value="0">aus</option><option value="11" selected>11 Stunden</option>
+          <option value="10">10 Stunden</option><option value="9">9 Stunden</option>
+        </select></div>
+    </div>
+
+    <div class="btns">
+      <button class="primary" id="parse">Zeiten einlesen</button>
+      <button class="ghost" id="demo">Beispiel</button>
+      <button class="ghost" id="add">+ Dienst hinzufügen</button>
+    </div>
+    <p class="hint">Leere Tage werden als frei übersprungen. Ein eingescanntes PDF ohne Textebene kann nicht gelesen werden — dann bleibt das Feld leer.</p>
+  </div>
+
+  <div class="stats hide" id="stats"></div>
+
+  <div class="card" id="viewCard" style="display:none">
+    <div class="toolbar">
+      <div class="seg" id="seg">
+        <button data-v="list" class="on">Liste</button>
+        <button data-v="month">Monat</button>
+      </div>
+      <div class="legend">
+        <span><i style="background:var(--frueh)"></i>Früh</span>
+        <span><i style="background:var(--spaet)"></i>Spät</span>
+        <span><i style="background:var(--nacht)"></i>Nacht</span>
+      </div>
+    </div>
+    <div id="warnings"></div>
+    <div id="view"><p class="empty">Noch nichts eingelesen.</p></div>
+  </div>
+
+  <div class="card">
+    <h2><b>2</b> Speichern &amp; importieren</h2>
+    <div class="btns">
+      <button class="primary" id="dl" disabled>Kalenderdatei speichern (.ics)</button>
+      <button class="ghost" id="copy" disabled>ICS-Text kopieren</button>
+    </div>
+    <p class="status" id="status"></p>
+    <div id="out"><textarea id="ics" readonly spellcheck="false"></textarea></div>
+    <details>
+      <summary>So importierst du die Datei</summary>
+      <ol>
+        <li><b>Samsung Kalender (Handy):</b> „Eigene Dateien" → Downloads → <code>dienstplan.ics</code> antippen → <b>Kalender</b> wählen → Zielkalender bestätigen.</li>
+        <li><b>Google Kalender (am PC):</b> calendar.google.com → Zahnrad → Einstellungen → <b>Importieren &amp; Exportieren</b> → Datei &amp; Zielkalender wählen → Importieren.</li>
+        <li><b>Tipp:</b> Vorher einen eigenen Kalender „Dienstplan" anlegen — dann lässt sich bei einem neuen Plan alles auf einmal löschen.</li>
+      </ol>
+    </details>
+    <p class="hint">Als App: im Browser-Menü <span class="kbd">Zum Startbildschirm hinzufügen</span>.</p>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const WD = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+  const WDL = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
+  const MON = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+  const SKIP = /\b(frei|urlaub|krank|ruhetag|zeitausgleich|za|off)\b/i;
+  const TIME = /(\d{1,2})\s*[:.h]\s*(\d{2})/;
+  const TIME_G = /(\d{1,2})\s*[:.h]\s*(\d{2})/g;
+  const pad = n => String(n).padStart(2,'0');
+  let shifts = [], uid = 1, editing = null, view = 'list', lastFree = 0;
+
+  if(window.pdfjsLib){
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  }
+
+  const typeOf = h => h>=4 && h<11 ? 'frueh' : (h>=11 && h<18 ? 'spaet' : 'nacht');
+  const typeLbl = t => t==='frueh'?'Früh':t==='spaet'?'Spät':'Nacht';
+  const fmtD = d => pad(d.getDate())+'.'+pad(d.getMonth()+1)+'.'+d.getFullYear();
+  const fmtT = d => pad(d.getHours())+':'+pad(d.getMinutes());
+  const dateKey = d => d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+
+  /* ---------- Spalten sauber ausrichten ---------- */
+  function alignPipes(text){
+    const rows = text.split('\n').map(l => l.indexOf('|')>=0 ? l.split('|').map(c=>c.trim()) : null);
+    const cols = Math.max(0, ...rows.map(r => r?r.length:0));
+    const w = new Array(cols).fill(0);
+    rows.forEach(r => { if(r) r.forEach((c,i)=>{ if(c.length>w[i]) w[i]=c.length; }); });
+    return text.split('\n').map((l,i) => {
+      const r = rows[i];
+      if(!r) return l;
+      return r.map((c,j)=> j<r.length-1 ? c.padEnd(w[j]) : c).join(' | ').replace(/\s+$/,'');
+    }).join('\n');
+  }
+
+  /* ---------- PDF → Zeilen ---------- */
+  async function pdfToText(file, onProgress){
+    if(!window.pdfjsLib) throw new Error('PDF-Leser nicht geladen (offline?)');
+    const pdf = await pdfjsLib.getDocument({data:await file.arrayBuffer()}).promise;
+    const out = [];
+    for(let p=1;p<=pdf.numPages;p++){
+      if(onProgress) onProgress(p, pdf.numPages);
+      const tc = await (await pdf.getPage(p)).getTextContent();
+      const rows = new Map();
+      tc.items.forEach(it=>{
+        if(!it.str||!it.str.trim())return;
+        const key = Math.round(it.transform[5]/4);
+        if(!rows.has(key))rows.set(key,[]);
+        rows.get(key).push({x:it.transform[4],w:it.width||0,s:it.str});
+      });
+      [...rows.entries()].sort((a,b)=>b[0]-a[0]).forEach(([,items])=>{
+        items.sort((a,b)=>a.x-b.x);
+        const cells=[]; let cur='',ex=null;
+        items.forEach(it=>{
+          const gap = ex===null?0:it.x-ex;
+          if(ex!==null&&gap>12){cells.push(cur.trim());cur=it.s;}
+          else cur+=(gap>1.2?' ':'')+it.s;
+          ex=it.x+it.w;
+        });
+        if(cur.trim())cells.push(cur.trim());
+        const line=cells.filter(Boolean).join(' | ');
+        if(line)out.push(line);
+      });
+    }
+    return out.join('\n');
+  }
+
+  /* ---------- Parser ---------- */
+  function findDate(t){
+    let m=t.match(/(\d{4})-(\d{1,2})-(\d{1,2})/);
+    if(m)return{y:+m[1],mo:+m[2],d:+m[3],txt:m[0]};
+    m=t.match(/(\d{1,2})\s*[.\/]\s*(\d{1,2})\s*[.\/]?\s*(\d{4}|\d{2})?/);
+    if(m){const y=m[3]?(m[3].length===2?2000+ +m[3]:+m[3]):(+$('year').value||new Date().getFullYear());
+      return{y,mo:+m[2],d:+m[1],txt:m[0]};}
+    return null;
+  }
+  function parseCols(line){
+    const cells=line.split(/\s*[|;\t]\s*/).map(s=>s.trim()).filter(Boolean);
+    let di=-1,date=null;
+    for(let i=0;i<cells.length;i++){const d=findDate(cells[i]);if(d&&/^\s*\d/.test(cells[i])){di=i;date=d;break;}}
+    if(!date||date.mo<1||date.mo>12||date.d<1||date.d>31)return null;
+    const rest=cells.slice(di+1), restTxt=rest.join(' ');
+    if(SKIP.test(restTxt)||!TIME.test(restTxt))return{skip:true};
+    let ti=[]; rest.forEach((c,i)=>[...c.matchAll(TIME_G)].forEach(m=>ti.push({i,m})));
+    if(ti.length<2)return{skip:true};
+    const a=ti[0],b=ti[1];
+    return{y:date.y,mo:date.mo,d:date.d,sh:+a.m[1],sm:+a.m[2],eh:+b.m[1],em:+b.m[2],
+      task:rest.slice(0,a.i).join(' ').trim(),loc:rest.slice(b.i+1).join(' ').trim()};
+  }
+  function parseFlat(raw){
+    let line=raw.replace(/[–—−]/g,'-').replace(/\b(bis|to)\b/gi,'-').replace(/\s+/g,' ').trim();
+    if(!line)return null;
+    const date=findDate(line);
+    if(!date||date.mo<1||date.mo>12||date.d<1||date.d>31)return null;
+    let rest=line.replace(date.txt,' ');
+    if(SKIP.test(rest)&&!TIME.test(rest))return{skip:true};
+    const times=[...rest.matchAll(TIME_G)];
+    if(times.length<2)return{skip:true};
+    const t1=times[0],t2=times[1];
+    if(+t1[1]>23||+t2[1]>23||+t1[2]>59||+t2[2]>59)return{error:raw,why:'Uhrzeit unplausibel'};
+    times.slice(0,2).forEach(t=>rest=rest.replace(t[0],' '));
+    const task=rest.replace(/^[\s\-,;:]+/,'')
+      .replace(/\b(mo|di|mi|do|fr|sa|so|montag|dienstag|mittwoch|donnerstag|freitag|samstag|sonntag)\b\.?/gi,'')
+      .replace(/[\-|,;:]+/g,' ').replace(/\s+/g,' ').trim();
+    return{y:date.y,mo:date.mo,d:date.d,sh:+t1[1],sm:+t1[2],eh:+t2[1],em:+t2[2],task,loc:''};
+  }
+  function makeShift(r){
+    const start=new Date(r.y,r.mo-1,r.d,r.sh,r.sm), end=new Date(r.y,r.mo-1,r.d,r.eh,r.em);
+    if(end<=start)end.setDate(end.getDate()+1);
+    return{id:uid++,start,end,task:r.task||'',loc:r.loc||''};
+  }
+  function build(){
+    const lines=$('input').value.split('\n'); shifts=[]; const errs=[]; let free=0;
+    lines.forEach(l=>{
+      if(!l.trim())return;
+      const r=/[|;\t]/.test(l)?parseCols(l):parseFlat(l);
+      if(!r)return; if(r.error){errs.push(r);return;} if(r.skip){free++;return;}
+      shifts.push(makeShift(r));
+    });
+    shifts.sort((a,b)=>a.start-b.start);
+    lastFree=free; editing=null;
+    if(shifts.length)$('viewCard').style.display='';
+    render(errs);
+  }
+
+  function makeTitle(task){
+    const fix=$('deftitle').value.trim()||'Dienst', mode=$('titlemode').value;
+    if(mode==='fix'||!task)return fix;
+    if(mode==='col')return task;
+    return (fix+' '+task).trim();
+  }
+
+  function checkWarnings(){
+    const out=[]; const rest=+$('rest').value;
+    for(let i=1;i<shifts.length;i++){
+      const prev=shifts[i-1],cur=shifts[i];
+      if(cur.start<prev.end) out.push('Überschneidung: '+fmtD(prev.start)+' und '+fmtD(cur.start)+' überlappen sich.');
+      else if(rest>0){
+        const gap=(cur.start-prev.end)/3600000;
+        if(gap<rest) out.push('Nur '+gap.toFixed(1).replace('.',',')+' h Ruhezeit vor dem Dienst am '+fmtD(cur.start)+'.');
+      }
+    }
+    return out;
+  }
+
+  function stats(){
+    const box=$('stats');
+    if(!shifts.length){box.className='stats hide';return;}
+    box.className='stats';
+    const totalH=shifts.reduce((s,x)=>s+(x.end-x.start)/3600000,0);
+    const weeks=new Set(shifts.map(x=>{const d=new Date(x.start);const day=(d.getDay()+6)%7;d.setDate(d.getDate()-day);return dateKey(d);})).size;
+    const bt={frueh:0,spaet:0,nacht:0}; shifts.forEach(x=>bt[typeOf(x.start.getHours())]++);
+    box.innerHTML=
+      stat(shifts.length,'Dienste')+
+      stat(totalH.toFixed(1).replace('.',','),'Stunden gesamt')+
+      stat(weeks?(totalH/weeks).toFixed(1).replace('.',','):'0','Ø h / Woche')+
+      '<div class="stat"><div class="n split">'+
+        '<i style="background:var(--frueh)"></i>'+bt.frueh+
+        '<i style="background:var(--spaet);margin-left:8px"></i>'+bt.spaet+
+        '<i style="background:var(--nacht);margin-left:8px"></i>'+bt.nacht+
+      '</div><div class="l">Früh · Spät · Nacht</div></div>';
+
+    const hero=$('hero'), now=new Date();
+    const next=shifts.find(x=>x.end>now);
+    if(next){
+      hero.className='hero';
+      $('heroBig').textContent=WDL[next.start.getDay()]+', '+fmtD(next.start);
+      const days=Math.ceil((new Date(next.start.getFullYear(),next.start.getMonth(),next.start.getDate())-new Date(now.getFullYear(),now.getMonth(),now.getDate()))/86400000);
+      $('heroCount').textContent=days<=0?'heute':days===1?'morgen':'in '+days+' Tagen';
+      $('heroTime').innerHTML=fmtT(next.start)+'–'+fmtT(next.end)+'<small>'+makeTitle(next.task)+'</small>';
+    }else hero.className='hero empty';
+  }
+  const stat=(n,l)=>'<div class="stat"><div class="n num">'+n+'</div><div class="l">'+l+'</div></div>';
+
+  function render(errs){
+    const w=$('warnings'); w.innerHTML='';
+    (errs||[]).forEach(e=>{const d=document.createElement('div');d.className='warn';
+      d.innerHTML='<span>Übersprungen ('+e.why+'): <code></code></span>';d.querySelector('code').textContent=e.error.trim();w.appendChild(d);});
+    if(lastFree){const d=document.createElement('div');d.className='info';d.innerHTML='<span>'+lastFree+' Tage ohne Zeiten (frei) übersprungen.</span>';w.appendChild(d);}
+    checkWarnings().forEach(m=>{const d=document.createElement('div');d.className='warn';d.innerHTML='<span>'+m+'</span>';w.appendChild(d);});
+
+    stats();
+    const v=$('view'); v.innerHTML='';
+    if(!shifts.length){v.innerHTML='<p class="empty">Keine Schicht erkannt.</p>';$('dl').disabled=$('copy').disabled=true;return;}
+    $('dl').disabled=$('copy').disabled=false;
+    view==='list'?renderList(v):renderMonth(v);
+    $('status').innerHTML='<span class="ok">'+shifts.length+' Dienste bereit.</span>';
+    $('out').style.display='none';
+  }
+
+  function renderList(v){
+    const fb=$('loc').value.trim();
+    shifts.forEach(s=>{
+      const t=typeOf(s.start.getHours()), sH=s.start.getHours()+s.start.getMinutes()/60;
+      const hrs=(s.end-s.start)/3600000, over=s.end.getDate()!==s.start.getDate();
+      const w1=Math.min(24-sH,hrs), loc=s.loc||fb;
+      const el=document.createElement('div'); el.className='shift'; el.dataset.t=t;
+      el.innerHTML=
+        '<div class="s-top">'+
+          '<span class="s-day"><small>'+WD[s.start.getDay()]+'</small>'+fmtD(s.start)+'</span>'+
+          '<span class="tag" data-t="'+t+'">'+typeLbl(t)+'</span>'+
+          '<span class="s-time num">'+fmtT(s.start)+'–'+fmtT(s.end)+(over?' +1':'')+'</span>'+
+          '<span class="s-acts"><button class="iconbtn ed">bearbeiten</button><button class="iconbtn rm">✕</button></span>'+
+        '</div>'+
+        '<div class="band"><i data-t="'+t+'" style="left:'+(sH/24*100)+'%;width:'+(w1/24*100)+'%"></i>'+
+          (over?'<i data-t="'+t+'" style="left:0;width:'+((hrs-w1)/24*100)+'%;opacity:.5"></i>':'')+
+          '<span class="tick" style="left:25%"></span><span class="tick" style="left:50%"></span><span class="tick" style="left:75%"></span></div>'+
+        '<div class="s-meta"><span><b>'+makeTitle(s.task)+'</b></span><span>'+hrs.toFixed(2).replace('.',',')+' h</span>'+
+          (loc?'<span>'+loc+'</span>':'')+(over?'<span>über Mitternacht</span>':'')+'</div>';
+      el.querySelector('.rm').onclick=()=>{shifts=shifts.filter(x=>x.id!==s.id);render();};
+      el.querySelector('.ed').onclick=()=>{editing=editing===s.id?null:s.id;render();};
+      if(editing===s.id)el.appendChild(editor(s));
+      v.appendChild(el);
+    });
+  }
+
+  function editor(s){
+    const wrap=document.createElement('div'); wrap.className='edit';
+    wrap.innerHTML=
+      '<div><label>Datum</label><input type="date" class="e-date" value="'+dateKey(s.start)+'"></div>'+
+      '<div><label>Beginn</label><input type="time" class="e-s" value="'+fmtT(s.start)+'"></div>'+
+      '<div><label>Ende</label><input type="time" class="e-e" value="'+fmtT(s.end)+'"></div>'+
+      '<div class="full"><label>Tätigkeit</label><input type="text" class="e-task" value="'+s.task.replace(/"/g,'&quot;')+'"></div>'+
+      '<div class="full"><label>Ort</label><input type="text" class="e-loc" value="'+s.loc.replace(/"/g,'&quot;')+'"></div>'+
+      '<div class="row"><button class="primary e-save">Übernehmen</button><button class="ghost e-cancel">Abbrechen</button></div>';
+    wrap.querySelector('.e-cancel').onclick=()=>{editing=null;render();};
+    wrap.querySelector('.e-save').onclick=()=>{
+      const dv=wrap.querySelector('.e-date').value.split('-').map(Number);
+      const sv=wrap.querySelector('.e-s').value.split(':').map(Number);
+      const ev=wrap.querySelector('.e-e').value.split(':').map(Number);
+      const st=new Date(dv[0],dv[1]-1,dv[2],sv[0],sv[1]), en=new Date(dv[0],dv[1]-1,dv[2],ev[0],ev[1]);
+      if(en<=st)en.setDate(en.getDate()+1);
+      s.start=st;s.end=en;s.task=wrap.querySelector('.e-task').value.trim();s.loc=wrap.querySelector('.e-loc').value.trim();
+      shifts.sort((a,b)=>a.start-b.start); editing=null; render();
+    };
+    return wrap;
+  }
+
+  function renderMonth(v){
+    const groups={};
+    shifts.forEach(s=>{const k=s.start.getFullYear()+'-'+s.start.getMonth();(groups[k]=groups[k]||[]).push(s);});
+    Object.keys(groups).sort().forEach(k=>{
+      const [y,m]=k.split('-').map(Number);
+      const days=new Date(y,m+1,0).getDate(), lead=(new Date(y,m,1).getDay()+6)%7;
+      const monH=groups[k].reduce((a,s)=>a+(s.end-s.start)/3600000,0);
+      const mon=document.createElement('div'); mon.className='month';
+      let html='<h3>'+MON[m]+' '+y+'<span>'+groups[k].length+' Dienste · '+monH.toFixed(1).replace('.',',')+' h</span></h3><div class="grid">';
+      WD.slice(1).concat(WD[0]).forEach(d=>html+='<div class="wdh">'+d+'</div>');
+      for(let i=0;i<lead;i++)html+='<div class="cell pad"></div>';
+      for(let d=1;d<=days;d++){
+        const dt=new Date(y,m,d), wknd=[0,6].includes(dt.getDay());
+        const sh=groups[k].filter(s=>s.start.getDate()===d);
+        let chip='';
+        if(sh.length){const t=typeOf(sh[0].start.getHours());
+          chip='<span class="chip" data-t="'+t+'">'+fmtT(sh[0].start)+(sh.length>1?' +'+(sh.length-1):'')+'</span>';}
+        html+='<div class="cell'+(wknd?' wknd':'')+'"><span class="num">'+d+'</span>'+chip+'</div>';
+      }
+      html+='</div>'; mon.innerHTML=html; v.appendChild(mon);
+    });
+  }
+
+  /* ---------- ICS ---------- */
+  const esc=s=>String(s).replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\n/g,'\\n');
+  const dt=d=>d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+'T'+pad(d.getHours())+pad(d.getMinutes())+'00';
+  const fold=l=>l.length<=74?l:l.match(/.{1,74}/g).join('\r\n ');
+  function makeICS(){
+    const fb=$('loc').value.trim(),al=$('alarm').value,n=new Date();
+    const stamp=n.getUTCFullYear()+pad(n.getUTCMonth()+1)+pad(n.getUTCDate())+'T'+pad(n.getUTCHours())+pad(n.getUTCMinutes())+pad(n.getUTCSeconds())+'Z';
+    const L=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Dienstplan//DE','CALSCALE:GREGORIAN','METHOD:PUBLISH',
+      'BEGIN:VTIMEZONE','TZID:Europe/Berlin',
+      'BEGIN:DAYLIGHT','TZOFFSETFROM:+0100','TZOFFSETTO:+0200','TZNAME:CEST','DTSTART:19700329T020000','RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=-1SU','END:DAYLIGHT',
+      'BEGIN:STANDARD','TZOFFSETFROM:+0200','TZOFFSETTO:+0100','TZNAME:CET','DTSTART:19701025T030000','RRULE:FREQ=YEARLY;BYMONTH=10;BYDAY=-1SU','END:STANDARD',
+      'END:VTIMEZONE'];
+    shifts.forEach((s,i)=>{
+      const loc=s.loc||fb;
+      L.push('BEGIN:VEVENT','UID:'+dt(s.start)+'-'+i+'-'+Math.random().toString(36).slice(2,8)+'@dienstplan',
+        'DTSTAMP:'+stamp,'DTSTART;TZID=Europe/Berlin:'+dt(s.start),'DTEND;TZID=Europe/Berlin:'+dt(s.end),'SUMMARY:'+esc(makeTitle(s.task)));
+      if(loc)L.push('LOCATION:'+esc(loc));
+      if(al)L.push('BEGIN:VALARM','TRIGGER:-PT'+al+'M','ACTION:DISPLAY','DESCRIPTION:'+esc(makeTitle(s.task)),'END:VALARM');
+      L.push('END:VEVENT');
+    });
+    L.push('END:VCALENDAR');
+    return L.map(fold).join('\r\n');
+  }
+
+  /* ---------- Laden ---------- */
+  async function load(file){
+    if(!file)return; const drop=$('drop'), st=$('status');
+    $('fname').textContent='';
+    try{
+      if(/\.pdf$/i.test(file.name)||file.type==='application/pdf'){
+        drop.classList.add('busy');
+        const txt=await pdfToText(file,(p,n)=>{$('busyText').textContent='PDF wird gelesen … Seite '+p+'/'+n;});
+        drop.classList.remove('busy');
+        if(!txt.trim()){st.textContent='Im PDF ist kein Text — vermutlich ein Scan. Zeiten bitte von Hand eintragen.';return;}
+        $('input').value=alignPipes(txt);
+        $('fname').textContent='✓ '+file.name;
+      }else{
+        $('input').value=alignPipes(await file.text());
+        $('fname').textContent='✓ '+file.name;
+      }
+      build();
+    }catch(err){drop.classList.remove('busy');st.textContent='Datei konnte nicht gelesen werden: '+err.message;}
+  }
+
+  /* ---------- Aktionen ---------- */
+  $('file').onchange=e=>load(e.target.files[0]);
+  $('parse').onclick=build;
+  $('reformat').onclick=()=>{$('input').value=alignPipes($('input').value);};
+  ['deftitle','titlemode','loc','rest','year'].forEach(id=>$(id).onchange=()=>{if(shifts.length)render();});
+  $('seg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+    view=b.dataset.v;[...$('seg').children].forEach(c=>c.classList.toggle('on',c===b));render();});
+
+  $('add').onclick=()=>{
+    const base=shifts.length?new Date(shifts[shifts.length-1].start):new Date();
+    base.setDate(base.getDate()+1);
+    const s={id:uid++,start:new Date(base.getFullYear(),base.getMonth(),base.getDate(),8,0),
+      end:new Date(base.getFullYear(),base.getMonth(),base.getDate(),16,0),task:'',loc:''};
+    shifts.push(s);shifts.sort((a,b)=>a.start-b.start);editing=s.id;view='list';
+    [...$('seg').children].forEach(c=>c.classList.toggle('on',c.dataset.v==='list'));
+    $('viewCard').style.display='';render();
+  };
+
+  const drop=$('drop');
+  ['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('hot');}));
+  ['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('hot');}));
+  drop.addEventListener('drop',e=>load(e.dataTransfer.files[0]));
+
+  $('dl').onclick=()=>{
+    const text=makeICS();
+    try{
+      const a=document.createElement('a');
+      a.href=URL.createObjectURL(new Blob([text],{type:'text/calendar;charset=utf-8'}));
+      a.download='dienstplan.ics';document.body.appendChild(a);a.click();a.remove();
+      setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+      $('status').innerHTML='<span class="ok">dienstplan.ics gespeichert — jetzt in den Kalender importieren.</span>';
+    }catch(e){$('ics').value=text;$('out').style.display='block';$('status').textContent='Speichern hier nicht möglich. Text unten kopieren und als dienstplan.ics ablegen.';}
+  };
+  $('copy').onclick=async()=>{
+    const text=makeICS();$('ics').value=text;$('out').style.display='block';
+    try{await navigator.clipboard.writeText(text);$('status').innerHTML='<span class="ok">ICS-Text kopiert.</span>';}
+    catch(e){$('ics').select();$('status').textContent='Text unten markieren und kopieren.';}
+  };
+  $('demo').onclick=()=>{
+    $('input').value=alignPipes(
+      '21.07.2026 |  |  |  | \n'+
+      '24.07.2026 | RTW | 06:00 | 13:00 | St. Stefan i. R.\n'+
+      '27.07.2026 | RTW | 06:00 | 13:00 | St. Stefan i. R.\n'+
+      '28.07.2026 | RTW | 06:00 | 13:00 | St. Stefan i. R.\n'+
+      '29.07.2026 | RTW | 06:00 | 13:00 | St. Stefan i. R.\n'+
+      '30.07.2026 | RTW | 09:00 | 19:00 | St. Stefan i. R.\n'+
+      '31.07.2026 | RTW | 09:00 | 19:00 | St. Stefan i. R.');
+    build();
+  };
+})();
+</script>
+</body>
+</html>

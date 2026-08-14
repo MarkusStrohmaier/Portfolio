@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f3eee6">
+<title>FreundeTracker</title>
+<link rel="stylesheet" href="styles.css">
+
+<!-- Macht die App installierbar (Android: „Zum Startbildschirm hinzufügen"). -->
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+
+<!-- iOS liest weder manifest.json noch <link rel="icon"> für den Homescreen. -->
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="FreundeTracker">
+</head>
+<body>
+
+<!-- Verhindert, dass beim Start kurz die Anmeldung aufblitzt -->
+<div class="splash" id="splash">
+  <span class="splash-brand">FreundeTracker</span>
+</div>
+
+<!-- ====================================================================
+     Anmeldung / Registrierung – erscheint nur, solange niemand
+     angemeldet ist. Danach startet die App direkt durch.
+     ==================================================================== -->
+<div class="auth" id="auth" hidden>
+  <div class="auth-card">
+    <h1 class="auth-brand">FreundeTracker</h1>
+    <p class="auth-claim">Ausgaben unter Freunden – ohne Zettel und ohne Streit.</p>
+
+    <p class="notice is-error" id="storageWarning" hidden></p>
+
+    <div class="segmented" role="tablist" aria-label="Anmelden oder registrieren">
+      <button class="seg" type="button" role="tab" data-auth-tab="login"    aria-selected="true">Anmelden</button>
+      <button class="seg" type="button" role="tab" data-auth-tab="register" aria-selected="false">Registrieren</button>
+    </div>
+
+    <!-- Anmelden -->
+    <form id="loginForm" novalidate>
+      <label class="field">
+        <span>E-Mail</span>
+        <input type="email" name="email" autocomplete="email" placeholder="du@beispiel.de">
+      </label>
+      <label class="field">
+        <span>Passwort</span>
+        <input type="password" name="password" autocomplete="current-password" placeholder="••••••••">
+      </label>
+      <p class="error" id="loginError" hidden></p>
+      <button class="btn btn-primary btn-block" type="submit">Anmelden</button>
+    </form>
+
+    <!-- Registrieren -->
+    <form id="registerForm" novalidate hidden>
+      <p class="auth-hint" id="inviteOnlyHint" hidden>
+        Ein Konto gibt es nur über einen Einladungslink. Lass dir von jemandem
+        aus der Gruppe einen schicken und öffne ihn auf diesem Gerät.
+      </p>
+      <label class="field">
+        <span>Dein Name</span>
+        <input type="text" name="name" autocomplete="name" placeholder="Wie sollen dich Freunde sehen?">
+      </label>
+      <label class="field">
+        <span>E-Mail</span>
+        <input type="email" name="email" autocomplete="email" placeholder="du@beispiel.de">
+      </label>
+      <label class="field">
+        <span>Passwort</span>
+        <input type="password" name="password" autocomplete="new-password" placeholder="mindestens 8 Zeichen">
+      </label>
+      <label class="field">
+        <span>Passwort wiederholen</span>
+        <input type="password" name="password2" autocomplete="new-password" placeholder="••••••••">
+      </label>
+      <p class="error" id="registerError" hidden></p>
+      <button class="btn btn-primary btn-block" type="submit">Konto erstellen</button>
+    </form>
+
+    <p class="auth-note">
+      Konto und Ausgaben liegen auf dem Server – auf Handy und Laptop siehst du denselben Stand.
+    </p>
+  </div>
+</div>
+
+<!-- ====================================================================
+     Neues Passwort setzen – erscheint nur bei ?resetToken=… in der Adresse
+     (Link von einem Gruppen-Admin, siehe reset.js). Eigener Bildschirm statt
+     eines Sheets über der Anmeldung: das muss auch funktionieren, wenn noch
+     gar keine Sitzung besteht.
+     ==================================================================== -->
+<div class="auth" id="resetView" hidden>
+  <div class="auth-card">
+    <h1 class="auth-brand">Neues Passwort</h1>
+    <p class="auth-claim" id="resetClaim"></p>
+
+    <form id="resetForm" novalidate>
+      <label class="field">
+        <span>Neues Passwort</span>
+        <input type="password" name="password" autocomplete="new-password" placeholder="mindestens 8 Zeichen">
+      </label>
+      <label class="field">
+        <span>Passwort wiederholen</span>
+        <input type="password" name="password2" autocomplete="new-password" placeholder="••••••••">
+      </label>
+      <p class="error" id="resetError" hidden></p>
+      <button class="btn btn-primary btn-block" type="submit">Passwort setzen</button>
+    </form>
+
+    <p class="auth-note">Danach bist du auf diesem Gerät direkt angemeldet.</p>
+  </div>
+</div>
+
+<!-- ====================================================================
+     Die eigentliche App
+     ==================================================================== -->
+<div id="app" hidden>
+
+  <header class="appbar">
+    <div class="appbar-inner">
+      <button class="icon-btn" id="backBtn" type="button" aria-label="Zurück" hidden>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+      </button>
+
+      <h1 class="appbar-title-wrap">
+        <button class="appbar-title" id="appbarTitle" type="button">FreundeTracker</button>
+      </h1>
+
+      <!-- Nur sichtbar, solange eine Gruppe offen ist -->
+      <button class="icon-btn" id="manageGroupBtn" type="button" aria-label="Gruppe verwalten" hidden>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/><path d="M19.4 13a1.7 1.7 0 0 0 .35 1.9l.05.05a2 2 0 1 1-2.85 2.85l-.05-.05a1.7 1.7 0 0 0-1.9-.35 1.7 1.7 0 0 0-1 1.55V19a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 9 17.4a1.7 1.7 0 0 0-1.9.35l-.05.05a2 2 0 1 1-2.85-2.85l.05-.05a1.7 1.7 0 0 0 .35-1.9 1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.35-1.9l-.05-.05a2 2 0 1 1 2.85-2.85l.05.05a1.7 1.7 0 0 0 1.9.35H9a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.9-.35l.05-.05a2 2 0 1 1 2.85 2.85l-.05.05a1.7 1.7 0 0 0-.35 1.9V9a1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1z"/></svg>
+      </button>
+
+      <button class="icon-btn" id="themeToggle" type="button" aria-label="Design wechseln">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+      </button>
+
+      <button class="icon-btn avatar-btn" id="profileBtn" type="button" aria-label="Profil bearbeiten"></button>
+    </div>
+  </header>
+
+  <!-- Inhalt wird je nach Ansicht aus app.js gerendert -->
+  <main class="page" id="view"></main>
+
+  <!-- ==================== Speed-Dial (Plus-Button) ==================== -->
+  <div class="dial-scrim" id="dialScrim" hidden></div>
+
+  <div class="dial" id="dial">
+    <ul class="dial-items" id="dialItems" hidden></ul>
+
+    <button class="fab" id="fab" type="button" aria-expanded="false" aria-controls="dialItems" aria-label="Neuen Eintrag hinzufügen">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+    </button>
+  </div>
+
+  <!-- Kurze Meldung, die von selbst wieder verschwindet (z. B. "Die Admin-
+       Rechte gehen an Anna über") – für Fälle, in denen die Ansicht direkt
+       danach wechselt und ein Hinweis im bisherigen "Notice"-Muster
+       (manageNotice/profileNotice) deshalb ungesehen bliebe. -->
+  <p class="toast" id="toast" hidden aria-live="polite"></p>
+
+  <!-- ==================== Modal: Neuer Eintrag ==================== -->
+  <div class="sheet-backdrop" id="backdrop" hidden></div>
+
+  <div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle" hidden>
+    <div class="sheet-grip" aria-hidden="true"></div>
+
+    <div class="sheet-head">
+      <h2 id="sheetTitle">Neuer Eintrag</h2>
+      <button class="icon-btn" id="sheetClose" type="button" aria-label="Schließen">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <form id="entryForm" novalidate>
+
+      <!-- Felder: Ausgabe -->
+      <div data-fields="expense">
+        <button class="btn btn-ghost btn-block btn-scan" type="button" id="scanBtn">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2M7 9v6M10 9v6M13 9v6M17 9v6"/></svg>
+          Rechnung scannen
+        </button>
+        <p class="scan-result" id="scanResult" hidden></p>
+
+        <!-- Beleg-Vorschau: sichtbarer Beweis, dass das Foto wirklich hängt -->
+        <button class="receipt-chip" type="button" id="viewReceiptBtn" hidden>
+          <img class="receipt-chip-img" id="receiptThumb" alt="" hidden>
+          <span class="receipt-chip-body">
+            <span class="receipt-chip-title">Beleg ansehen</span>
+            <span class="receipt-chip-sub" id="receiptChipSub">Foto und Posten</span>
+          </span>
+          <span class="row-chevron"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></span>
+        </button>
+        <input type="hidden" name="receiptId" id="receiptIdField">
+
+        <label class="field">
+          <span>Wofür?</span>
+          <input type="text" name="title" placeholder="z. B. Hotel Shanghai" autocomplete="off">
+        </label>
+        <label class="field">
+          <span>Betrag</span>
+          <input type="number" name="amount" placeholder="0,00" step="0.01" min="0" inputmode="decimal">
+        </label>
+        <!-- Nur bei Geschenken sichtbar; muss vor „Teilen durch" stehen -->
+        <label class="field" id="giftBlock" hidden>
+          <span>Für wen ist das Geschenk?</span>
+          <select name="giftFor" id="giftForSelect"></select>
+          <small>Zahlt nichts mit – und bekommt den Eintrag gar nicht erst zu sehen.</small>
+        </label>
+
+        <label class="field">
+          <span>Anlass</span>
+          <select name="eventId" id="eventSelect"></select>
+        </label>
+        <label class="field" id="categoryBlock">
+          <span>Kategorie</span>
+          <select name="category" id="categorySelect"></select>
+        </label>
+        <label class="field">
+          <span>Bezahlt von</span>
+          <select name="payer" id="payerSelect"></select>
+        </label>
+
+        <div class="field">
+          <span>Teilen durch</span>
+          <div class="participants" id="participantList"></div>
+          <small id="splitHint"></small>
+        </div>
+
+        <!-- Klappt nur aus, wenn wirklich ungleich geteilt wird -->
+        <label class="check">
+          <input type="checkbox" id="unequalToggle">
+          <span>Ungleich aufteilen</span>
+        </label>
+
+        <div class="split-editor" id="splitEditor" hidden>
+          <div class="segmented segmented-small" role="tablist" aria-label="Art der Aufteilung">
+            <button class="seg" type="button" role="tab" data-split-mode="amount" aria-selected="true">Feste Beträge</button>
+            <button class="seg" type="button" role="tab" data-split-mode="share"  aria-selected="false">Anteile</button>
+          </div>
+
+          <div id="splitRows"></div>
+          <p class="split-balance" id="splitBalance"></p>
+        </div>
+      </div>
+
+      <!-- Felder: Zahlung -->
+      <div data-fields="payment" hidden>
+        <label class="field">
+          <span>Von</span>
+          <select name="from" id="fromSelect"></select>
+        </label>
+        <label class="field">
+          <span>An</span>
+          <select name="to" id="toSelect"></select>
+        </label>
+        <label class="field">
+          <span>Betrag</span>
+          <input type="number" name="payAmount" placeholder="0,00" step="0.01" min="0" inputmode="decimal">
+        </label>
+      </div>
+
+      <!-- Felder: Anlass -->
+      <div data-fields="event" hidden>
+        <label class="field">
+          <span>Name des Anlasses</span>
+          <input type="text" name="eventName" placeholder="z. B. Urlaub China" autocomplete="off">
+        </label>
+        <p class="hint">Ein Anlass bündelt zusammengehörige Ausgaben – eine Reise, ein Wochenende, ein Monat.</p>
+
+        <!-- Zugeklappt: die meisten Anlässe brauchen nur einen Namen, ein
+             Zeitraum ist die Ausnahme, kein Pflichtfeld. -->
+        <details class="advanced-fields">
+          <summary>Erweiterte Einstellungen</summary>
+          <div class="field-row">
+            <label class="field">
+              <span>Von</span>
+              <input type="date" name="eventStart">
+            </label>
+            <label class="field">
+              <span>Bis</span>
+              <input type="date" name="eventEnd">
+            </label>
+          </div>
+        </details>
+      </div>
+
+      <!-- Felder: Gruppe -->
+      <div data-fields="group" hidden>
+        <label class="field">
+          <span>Gruppenname</span>
+          <input type="text" name="name" placeholder="z. B. Reisecrew" autocomplete="off">
+        </label>
+        <label class="field">
+          <span>Mitglieder</span>
+          <input type="text" name="members" placeholder="Anna, Ben, Clara" autocomplete="off">
+          <small>Namen mit Komma trennen</small>
+        </label>
+      </div>
+
+      <!-- Felder: Person -->
+      <div data-fields="person" hidden>
+        <label class="field">
+          <span>Name</span>
+          <input type="text" name="personName" placeholder="z. B. Tom" autocomplete="off">
+        </label>
+        <!-- Nur beim Bearbeiten eines bestehenden Mitglieds sichtbar -->
+        <p class="hint" id="memberBalanceNote" hidden></p>
+
+        <!-- Adminrechte und Passwort-Link: bewusst HIER, direkt bei der
+             Person, statt als Knopfreihe in der Mitgliederliste – dort war
+             auf einen Blick nicht erkennbar, wen ein Knopf gerade meint.
+             Inhalt kommt aus app.js (memberAdminBlockHtml). -->
+        <div class="member-admin" id="memberAdminBlock" hidden></div>
+      </div>
+
+      <p class="error" id="formError" hidden></p>
+
+      <div class="sheet-actions">
+        <button type="button" class="btn btn-ghost" id="sheetCancel">Abbrechen</button>
+        <button type="submit" class="btn btn-primary">Speichern</button>
+      </div>
+
+      <!-- Nur beim Bearbeiten sichtbar; braucht zwei Klicks -->
+      <button type="button" class="btn btn-danger btn-block" id="deleteEntryBtn" hidden>
+        Ausgabe löschen
+      </button>
+      <!-- Erklärt beim zweiten Klick, was mit einem offenen Saldo passiert -->
+      <p class="delete-hint" id="deleteEntryHint" hidden></p>
+    </form>
+  </div>
+
+  <!-- ==================== Modal: Offene Zahlung ==================== -->
+  <div class="sheet" id="paySheet" role="dialog" aria-modal="true" aria-labelledby="paySheetTitle" hidden>
+    <div class="sheet-grip" aria-hidden="true"></div>
+
+    <div class="sheet-head">
+      <h2 id="paySheetTitle">Offene Zahlung</h2>
+      <button class="icon-btn" id="paySheetClose" type="button" aria-label="Schließen">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <div id="paySheetBody"></div>
+  </div>
+
+  <!-- ==================== Modal: Gruppen-Einladung ==================== -->
+  <div class="sheet" id="inviteSheet" role="dialog" aria-modal="true" aria-labelledby="inviteSheetTitle" hidden>
+    <div class="sheet-grip" aria-hidden="true"></div>
+
+    <div class="sheet-head">
+      <h2 id="inviteSheetTitle">Einladung</h2>
+      <button class="icon-btn" id="inviteSheetClose" type="button" aria-label="Schließen">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <div id="inviteSheetBody"></div>
+  </div>
+
+  <!-- Wird vom Profil aus ausgelöst, bleibt für den Nutzer unsichtbar -->
+  <input type="file" id="avatarInput" accept="image/png,image/jpeg,image/webp,image/gif" hidden>
+
+  <!-- Wird aus der Gruppenverwaltung heraus ausgelöst -->
+  <input type="file" id="groupAvatarInput" accept="image/png,image/jpeg,image/webp,image/gif" hidden>
+
+</div>
+
+<script src="store.js"></script>
+<script src="app.js"></script>
+<script src="payments.js"></script>
+<script src="invite.js"></script>
+<script src="reset.js"></script>
+<script src="account.js"></script>
+<!-- Rechnung scannen: baut sein Overlay selbst, siehe public/receipt.js -->
+<script src="receipt.js"></script>
+</body>
+</html>

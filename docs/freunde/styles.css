@@ -1,0 +1,2100 @@
+/* ==========================================================================
+   FreundeTracker – Basis-Styles
+   Warme „Papier"-Optik, heller Modus als Standard, dunkler über
+   [data-theme="dark"]. Schriften sind lokal installiert, keine Webfonts.
+   ========================================================================== */
+
+:root {
+  /* Warme Neutraltöne statt Grau – wirkt weniger technisch. */
+  --bg:        #f3eee6;
+  --surface:   #fffdf9;
+  --surface-2: #ece4d8;
+  --line:      #ddd2c2;
+  --text:      #2e2823;
+  --text-dim:  #786a5b;   /* dunkel genug für AA-Kontrast auf --surface */
+
+  /* Gedämpftes Petrol als Leitfarbe, erdiges Grün/Rost für Beträge. */
+  --accent:     #2d6a5f;
+  --accent-ink: #fdfbf7;
+  --pos:        #55763f;
+  --neg:        #ad5238;
+
+  --font-body:    "Candara", "Optima", "Gill Sans MT", "Segoe UI", sans-serif;
+  --font-display: "Sitka Text", "Constantia", "Palatino Linotype", Palatino, Georgia, serif;
+
+  --radius:  16px;
+  --ctrl-h:  50px;
+  --gap:     14px;
+  --page-max: 520px;
+
+  /* Warm getönte Schatten – neutrales Schwarz wirkt hart. */
+  --shadow:      0 10px 28px rgba(74, 56, 36, .16);
+  --shadow-soft: 0 2px 6px rgba(74, 56, 36, .07);
+}
+
+[data-theme="dark"] {
+  --bg:        #1c1917;
+  --surface:   #262220;
+  --surface-2: #322c28;
+  --line:      #40382f;
+  --text:      #efe7db;
+  --text-dim:  #a1948a;
+
+  --accent:     #6fae9f;
+  --accent-ink: #17201e;
+  --pos:        #9dbb7d;
+  --neg:        #e08a6c;
+
+  --shadow:      0 10px 28px rgba(0, 0, 0, .45);
+  --shadow-soft: 0 2px 6px rgba(0, 0, 0, .28);
+}
+
+* { box-sizing: border-box; }
+
+/*
+  Wichtig: Jede eigene display-Regel (display:grid, display:flex …) schlägt die
+  Browser-Standardregel [hidden]{display:none}, weil eine Klasse spezifischer
+  ist als ein Attribut. Ohne diese Zeile bleiben per hidden „versteckte"
+  Elemente sichtbar. Steht bewusst ganz oben und gilt für die ganze App.
+*/
+[hidden] { display: none !important; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.45;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body { padding-bottom: 120px; }
+
+/* Beträge laufen sonst beim Aktualisieren unruhig. */
+.balance-value,
+.row-amount { font-variant-numeric: tabular-nums; }
+
+svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ---------------------------------- App-Leiste --------------------------- */
+
+.appbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: color-mix(in srgb, var(--bg) 90%, transparent);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+
+.appbar-inner {
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: 13px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.appbar-title-wrap {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0 10px;
+}
+
+/* Der Titel ist ein <button> (Klick führt immer zurück zur Übersicht),
+   sieht dabei aber weiterhin wie reiner Text aus. */
+.appbar-title {
+  display: block;
+  width: 100%;
+  border: none;
+  background: none;
+  padding: 0;
+  margin: 0;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: .002em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Hält den Titel mittig, wenn links kein Zurück-Button steht. */
+#backBtn[hidden] + .appbar-title-wrap { margin-left: 50px; }
+
+.icon-btn {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--text-dim);
+  cursor: pointer;
+}
+
+.icon-btn { transition: transform .1s ease, background-color .12s ease; }
+.icon-btn:active { background: var(--surface-2); transform: scale(.92); }
+
+/* ------------------------------------ Seite ------------------------------ */
+
+.page {
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: 20px 16px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+}
+
+/* ------------------------------ Saldo-Übersicht -------------------------- */
+
+.balance {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 22px 22px 24px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+}
+
+.balance-label {
+  font-size: 14px;
+  color: var(--text-dim);
+}
+
+.balance-value {
+  font-family: var(--font-display);
+  font-size: 36px;
+  font-weight: 600;
+  line-height: 1.15;
+}
+
+.balance-value.is-pos { color: var(--pos); }
+.balance-value.is-neg { color: var(--neg); }
+
+.balance-hint {
+  font-size: 14px;
+  color: var(--text-dim);
+}
+
+/*
+  Kopf der Anlass-Ansicht: bewusst ohne Karte/Rahmen, damit der Name wie eine
+  Seitenüberschrift wirkt statt wie ein weiterer Kasten unter vielen – das war
+  der Punkt, der vorher unterging (nur klein über der Summe zu lesen).
+*/
+.event-hero {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 2px;
+}
+
+.event-hero-group {
+  font-size: 14px;
+  color: var(--text-dim);
+}
+
+.event-hero-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.event-hero-title-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+.event-hero-title-row .event-hero-title { flex: 1 1 auto; }
+
+/* Ruhig gehalten – fällt erst auf, wenn man danach sucht. */
+.event-edit-btn {
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  margin-top: 3px;
+  color: var(--text-dim);
+  opacity: .7;
+}
+.event-edit-btn svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.event-edit-btn:active { opacity: 1; }
+
+.event-hero-dates {
+  margin: 2px 2px 0;
+  font-size: 13.5px;
+  color: var(--text-dim);
+}
+
+.event-hero-note {
+  margin: 8px 2px 0;
+  font-size: 13.5px;
+  color: var(--text-dim);
+}
+
+/* --------------------------------- Mitglieder ---------------------------- */
+
+.members {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+/* Sitzt jetzt als eigener Abschnitt am Ende der Gruppenübersicht – der
+   negative Abstand von früher (als es direkt unter dem Saldo klebte)
+   würde die Chips hier in die Überschrift ziehen. */
+.members-block .members { margin-top: 2px; }
+
+.chip {
+  padding: 4px 12px 5px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  font-size: 14px;
+  color: var(--text-dim);
+}
+
+/* ------------------------------------ Reiter ----------------------------- */
+
+/* Vier gleich breite Reiter – vorher ragte der letzte aus dem Bildschirm. */
+.tabs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 5px;
+  margin-top: -10px;
+}
+
+.tab {
+  min-width: 0;
+  padding: 9px 4px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text-dim);
+  font-family: var(--font-body);
+  font-size: 14px;
+  text-align: center;
+  white-space: nowrap;
+  transition: transform .1s ease, background-color .15s ease, color .15s ease, border-color .15s ease;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+
+.tab[aria-selected="true"] {
+  border-color: transparent;
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.tab:active { transform: scale(.95); }
+
+/* ------------------------------- Kennzahlen ------------------------------ */
+
+/* minmax(0, 1fr) statt 1fr: sonst zieht ein langer Betrag seine Spalte breiter
+   und die vier Kacheln stehen ungleich nebeneinander. */
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 14px 15px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+}
+
+.tile-label {
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+.tile-value {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;   /* riesige Beträge umbrechen statt abschneiden */
+}
+
+.facts {
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+}
+
+.fact {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.fact-label {
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+.fact-value {
+  font-family: var(--font-display);
+  font-size: 16px;
+}
+
+/* ------------------------------------ Blöcke ----------------------------- */
+
+.block-head {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  margin-bottom: 11px;
+  padding-left: 3px;
+}
+
+/* Kategorie-Summe rechts, damit sie mit den Beträgen darunter fluchtet. */
+.cat-icon ~ .count {
+  margin-left: auto;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+.cat-icon {
+  align-self: center;
+  display: grid;
+  place-items: center;
+  color: var(--accent);
+}
+
+.cat-icon svg { width: 19px; height: 19px; }
+
+/* Bewusst gemischte Schreibweise statt Versalien-Label. */
+.block-head h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.count {
+  font-size: 14px;
+  color: var(--text-dim);
+}
+
+/* ------------------------------------ Listen ----------------------------- */
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+
+/* Nur anklickbare Zeilen reagieren – reine Anzeigezeilen sind <div>. */
+button.row {
+  cursor: pointer;
+  transition: transform .1s ease, background-color .12s ease;
+}
+button.row:active { background: var(--surface-2); transform: scale(.98); }
+
+.row-chevron {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  margin-right: -4px;
+  color: var(--text-dim);
+}
+
+.row-chevron svg { width: 18px; height: 18px; }
+
+.avatar {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface));
+  color: var(--accent);
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+/* Gruppen- und Profilbilder füllen den Kreis, statt daneben zu stehen. */
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Kategorie-Icon statt Initialen in Ausgabenzeilen. */
+.avatar-icon svg { width: 20px; height: 20px; }
+
+/* Kleine Ausgabe für die Ausgleichszeilen: dort stehen zwei Personen in
+   EINER Zeile, in voller Größe würde das die Namen erdrücken. */
+.avatar-xs {
+  width: 24px;
+  height: 24px;
+  font-size: 10.5px;
+}
+
+/*
+  Wichtig: Die inneren Elemente sind <span>, also von Haus aus inline.
+  Ohne display:block greifen white-space, overflow und text-overflow nicht –
+  dann läuft der Text aus der Karte heraus und Titel und Betrag landen
+  nebeneinander statt übereinander.
+*/
+.row-title,
+.row-sub,
+.row-amount,
+.row-note { display: block; }
+
+.row-body { flex: 1 1 auto; min-width: 0; }
+
+.row-title {
+  font-size: 16px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.row-sub {
+  margin-top: 1px;
+  font-size: 13.5px;
+  color: var(--text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.row-meta {
+  flex: 0 0 auto;
+  max-width: 45%;
+  text-align: right;
+}
+
+.row-amount {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.row-amount.is-pos { color: var(--pos); }
+.row-amount.is-neg { color: var(--neg); }
+
+.row-note {
+  margin-top: 1px;
+  font-size: 12.5px;
+  color: var(--text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* --------------------------------- Suche --------------------------------- */
+.search-wrap {
+  position: relative;
+  margin: 0 0 14px;
+}
+.search-input {
+  width: 100%;
+  padding: 12px 38px 12px 40px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 15px;
+  /* 16px-Regel: kleinere Schrift lässt iOS beim Antippen hineinzoomen.
+     Deshalb hier ausdrücklich nicht kleiner werden lassen. */
+}
+.search-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+/* Das eingebaute Kreuz von Safari/Chrome weg – wir haben ein eigenes, das
+   auch auf Android erscheint und größer zu treffen ist. */
+.search-input::-webkit-search-cancel-button { display: none; }
+
+.search-icon {
+  position: absolute;
+  left: 13px; top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  color: var(--text-dim);
+  pointer-events: none;
+}
+.search-icon svg {
+  width: 17px; height: 17px;
+  fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round;
+}
+
+.search-clear {
+  position: absolute;
+  right: 5px; top: 50%;
+  transform: translateY(-50%);
+  width: 34px; height: 34px;
+  border: none; background: none;
+  color: var(--text-dim);
+  font-size: 21px; line-height: 1;
+  cursor: pointer;
+}
+
+.search-count {
+  margin: -6px 3px 14px;
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+/* Erklärung beim scharfgestellten Löschen eines Mitglieds mit offenem Saldo.
+   Kein Rot: es ist eine Erklärung, keine Fehlermeldung. */
+.delete-hint {
+  margin: 10px 2px 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-dim);
+}
+
+/* Admin-Kennzeichen an der Mitgliederzeile – klein und ruhig, es ist eine
+   Rolle, keine Warnung. */
+.member-tag {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  color: var(--accent);
+  font-size: 11.5px;
+  font-weight: 600;
+  vertical-align: 1px;
+}
+
+/* Mitgliederzeile ohne Admin-Rechte: gleiche Optik, aber nicht antippbar. */
+.row-static { cursor: default; }
+
+/* Aktionen unter der Mitgliederzeile (Admin-Rolle, Passwort-Link). Bewusst
+   klein und textlich statt weitere Vollbreit-Knöpfe: das sind seltene
+   Aktionen und sollen das Bearbeiten der Zeile nicht optisch verdrängen –
+   deshalb auch als flache Reihe statt gestapelt, selbst wenn beide da sind. */
+.member-item { list-style: none; }
+
+/* Rechte-Abschnitt im Mitglied-Formular. Durch die Trennlinie abgesetzt:
+   Name und Saldo darüber beschreiben die Person, ab hier wird gehandelt. */
+.member-admin {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.member-admin-title {
+  margin: 0 0 8px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.member-admin-actions {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  margin-bottom: 8px;
+}
+
+.member-admin .hint { margin: 0; }
+
+.member-role {
+  padding: 5px 11px;
+  border: 1px solid color-mix(in srgb, var(--text) 14%, transparent);
+  border-radius: 999px;
+  background: none;
+  color: var(--text-dim);
+  font-family: var(--font-body);
+  font-size: 12.5px;
+  cursor: pointer;
+}
+.member-role:active { background: var(--surface-2, var(--surface)); }
+
+/* Ergebnis von „Passwort-Link" – gleiche Optik wie der Einladungslink-Block.
+   Ohne Einrückung: der Block steht jetzt im Formular der Person, nicht mehr
+   unter einer Zeile in der Mitgliederliste. */
+.member-reset-link { margin: 10px 0 0; }
+
+/* Ausgeglichene Gruppe: bewusst leise. Ein Betrag stünde hier nur im Weg –
+   „nichts zu tun" ist die Information. Ohne Farbe, damit Grün und Rost in
+   der Liste wirklich etwas bedeuten. */
+.row-settled {
+  font-size: 13px;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+.empty {
+  margin: 0;
+  padding: 24px 18px;
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+  color: var(--text-dim);
+  font-size: 14.5px;
+  text-align: center;
+}
+
+/* Eingeklappte Sammelzeile für Archiviertes (Gruppen, Anlässe). Bewusst
+   deutlich ruhiger als eine normale Zeile – nur eine Randlinie, keine
+   Karte, kein Pfeil-Symbol –, sie ist ja zum Weglassen gedacht, nicht zum
+   Hinschauen. */
+.archived-summary {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--line);
+}
+.archived-summary summary {
+  cursor: pointer;
+  color: var(--text-dim);
+  font-size: 13.5px;
+  list-style: none;      /* eigenes, kleineres Dreieck statt des Browser-Standards */
+}
+.archived-summary summary::-webkit-details-marker { display: none; }
+.archived-summary summary::before {
+  content: '▸';
+  display: inline-block;
+  margin-right: 6px;
+  font-size: 11px;
+  transition: transform .15s ease;
+}
+.archived-summary[open] summary::before { transform: rotate(90deg); }
+.archived-summary .list { margin-top: 10px; }
+
+.audit-list { margin-top: 12px; }
+.audit-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 0;
+  border-top: 1px dashed var(--line);
+  font-size: 13.5px;
+}
+.audit-item:first-child { border-top: none; }
+.audit-when {
+  color: var(--text-dim);
+  font-size: 11.5px;
+}
+.audit-what { color: var(--text); }
+
+/* --------------------------------- Speed-Dial ---------------------------- */
+
+/* Überlagert den Seiteninhalt, solange der Dial offen ist. */
+.dial-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 28;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  animation: fade .18s ease;
+}
+
+/* Schließen soll genauso weich aussehen wie das Öffnen, nicht hart abreißen. */
+.dial-scrim.is-closing { animation: fade-out .14s ease forwards; }
+.dial-items.is-closing { animation: dial-out .14s ease forwards; }
+
+.dial {
+  position: fixed;
+  left: 16px;
+  right: max(18px, calc(50vw - var(--page-max) / 2 + 4px));
+  bottom: calc(22px + env(safe-area-inset-bottom));
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 17px;
+  pointer-events: none;   /* nur die Buttons selbst sind klickbar */
+}
+
+.fab,
+.dial-item > * { pointer-events: auto; }
+
+.dial-items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 17px;
+}
+
+.dial-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  animation: dial-in .2s cubic-bezier(.2, .9, .3, 1) backwards;
+}
+
+/* Von unten nach oben einblenden – unterster Eintrag zuerst. */
+.dial-item:nth-last-child(1) { animation-delay: .02s; }
+.dial-item:nth-last-child(2) { animation-delay: .06s; }
+.dial-item:nth-last-child(3) { animation-delay: .10s; }
+.dial-item:nth-last-child(4) { animation-delay: .14s; }
+.dial-item:nth-last-child(5) { animation-delay: .18s; }
+
+.dial-label {
+  flex: 0 1 auto;
+  min-width: 0;
+  text-align: right;
+}
+
+.dial-label-title {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.dial-label-sub {
+  display: block;
+  font-size: 13.5px;
+  color: var(--text-dim);
+}
+
+.dial-btn {
+  flex: 0 0 54px;   /* darf nicht schrumpfen, sonst versetzt zum Plus-Button */
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--accent);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  transition: transform .12s ease;
+}
+
+.dial-btn svg { width: 23px; height: 23px; }
+.dial-btn:active { transform: scale(.92); }
+
+@keyframes dial-in {
+  from { opacity: 0; transform: translateY(14px) scale(.9); }
+}
+
+@keyframes dial-out {
+  to { opacity: 0; transform: translateY(10px) scale(.92); }
+}
+
+/* -------------------------------------- FAB ------------------------------ */
+
+.fab {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--accent-ink);
+  box-shadow: 0 8px 22px color-mix(in srgb, var(--accent) 38%, transparent);
+  cursor: pointer;
+  transition: transform .18s cubic-bezier(.2, .9, .3, 1);
+}
+
+.fab svg { width: 26px; height: 26px; stroke-width: 2; }
+.fab:active { transform: scale(.93); }
+
+/* Plus wird zum X, sobald der Dial offen ist. */
+.fab[aria-expanded="true"] { transform: rotate(45deg); }
+.fab[aria-expanded="true"]:active { transform: rotate(45deg) scale(.93); }
+
+/* -------------------------------- Modal / Sheet -------------------------- */
+
+/* Kurze Meldung, die von selbst verschwindet – siehe showToast() in app.js.
+   Bewusst über allem anderen (auch über Sheets/Overlays), damit sie auch
+   dann sichtbar bleibt, wenn direkt danach ein neuer Bildschirm aufgeht. */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 84px);
+  z-index: 90;
+  max-width: min(86vw, 420px);
+  margin: 0;
+  padding: 12px 18px;
+  border-radius: 999px;
+  background: var(--text);
+  color: var(--bg);
+  font-family: var(--font-body);
+  font-size: .88rem;
+  text-align: center;
+  box-shadow: var(--shadow);
+  transform: translate(-50%, 8px);
+  opacity: 0;
+  transition: opacity .22s ease, transform .22s ease;
+  pointer-events: none;
+}
+.toast.is-visible { opacity: 1; transform: translate(-50%, 0); }
+
+@media (prefers-reduced-motion: reduce) {
+  .toast { transition: none; }
+}
+
+.sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: rgba(46, 34, 22, .42);
+  animation: fade .18s ease;
+}
+
+.sheet-backdrop.is-closing { animation: fade-out .16s ease forwards; }
+
+.sheet {
+  position: fixed;
+  z-index: 50;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: 10px 20px calc(22px + env(safe-area-inset-bottom));
+  max-height: 88vh;
+  overflow-y: auto;
+  border: 1px solid var(--line);
+  border-bottom: 0;
+  border-radius: 24px 24px 0 0;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  animation: slide-up .22s cubic-bezier(.22, .9, .3, 1);
+}
+
+/* Beim Schließen zurück nach unten – vorher fiel das Sheet einfach hart weg. */
+.sheet.is-closing { animation: slide-down .18s cubic-bezier(.4, 0, 1, 1) forwards; }
+
+.sheet-grip {
+  width: 38px;
+  height: 4px;
+  margin: 0 auto 14px;
+  border-radius: 99px;
+  background: var(--line);
+  /* Damit der Browser das Runterziehen nicht selbst als Scroll/Zoom deutet. */
+  touch-action: none;
+}
+
+.sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+  touch-action: none;
+}
+
+.sheet-head h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 21px;
+  font-weight: 600;
+}
+
+@keyframes fade { from { opacity: 0; } }
+@keyframes slide-up { from { transform: translateY(100%); } }
+@keyframes fade-out { to { opacity: 0; } }
+@keyframes slide-down { to { transform: translateY(100%); } }
+
+/* ------------------------------- Startbild -------------------------------- */
+
+.splash {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  place-items: center;
+  background: var(--bg);
+}
+
+.splash-brand {
+  font-family: var(--font-display);
+  font-size: 27px;
+  font-weight: 600;
+  color: var(--text-dim);
+}
+
+/* =========================== Anmelden / Registrieren ====================== */
+
+.auth {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px 16px;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 400px;
+  padding: 28px 24px 22px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.auth-brand {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 30px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.auth-claim {
+  margin: 5px 0 22px;
+  color: var(--text-dim);
+  font-size: 15px;
+  text-align: center;
+}
+
+.auth-hint {
+  margin: 0 0 var(--gap);
+  padding: 11px 13px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.auth-note {
+  margin: 18px 0 0;
+  color: var(--text-dim);
+  font-size: 13px;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.auth-demo-link {
+  display: block;
+  margin-top: 14px;
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+}
+.auth-demo-link:hover { text-decoration: underline; }
+
+/* ---------------------------------- Segmented ---------------------------- */
+
+.segmented {
+  display: grid;
+  grid-auto-flow: column;
+  gap: 4px;
+  padding: 4px;
+  margin-bottom: 20px;
+  border-radius: 13px;
+  background: var(--surface-2);
+}
+
+.seg {
+  height: 40px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-dim);
+  font-family: var(--font-body);
+  font-size: 15px;
+  cursor: pointer;
+  transition: transform .1s ease, background-color .15s ease, color .15s ease;
+}
+
+.seg[aria-selected="true"] {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-soft);
+}
+
+.seg:active { transform: scale(.95); }
+
+/* ================================== Profil =============================== */
+
+/* Der Knopf oben rechts zeigt Bild oder Initialen. */
+.avatar-btn {
+  overflow: hidden;
+  padding: 0;
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface));
+  color: var(--accent);
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.avatar-btn img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-head {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.profile-avatar {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  width: 78px;
+  height: 78px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface));
+  color: var(--accent);
+  font-family: var(--font-display);
+  font-size: 27px;
+  font-weight: 600;
+}
+
+.profile-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-identity {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.profile-identity strong {
+  font-family: var(--font-display);
+  font-size: 21px;
+  font-weight: 600;
+}
+
+.profile-identity span {
+  color: var(--text-dim);
+  font-size: 14.5px;
+  overflow-wrap: anywhere;
+}
+
+.profile-since { font-size: 13px; }
+
+.profile-avatar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin-top: -12px;
+}
+
+.profile-avatar-actions .btn { flex: 1 1 auto; }
+
+/* Abmelden steht bewusst weit oben und trägt ein Symbol. */
+.btn-logout {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-basis: 100%;
+}
+
+.btn-logout svg { width: 19px; height: 19px; }
+
+/* Rahmen für die Formularblöcke der Profilseite. */
+.card {
+  padding: 17px 16px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+}
+
+.card .field:last-of-type { margin-bottom: 18px; }
+
+.notice {
+  margin: 0;
+  padding: 13px 15px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  font-size: 14.5px;
+}
+
+.notice.is-ok {
+  border-color: color-mix(in srgb, var(--pos) 40%, var(--line));
+  background: color-mix(in srgb, var(--pos) 12%, var(--surface));
+}
+
+.notice.is-error {
+  border-color: color-mix(in srgb, var(--neg) 40%, var(--line));
+  background: color-mix(in srgb, var(--neg) 12%, var(--surface));
+}
+
+.danger-note {
+  margin: 14px 0;
+  color: var(--text-dim);
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.danger-list {
+  margin: 0 0 14px;
+  padding-left: 20px;
+  color: var(--text-dim);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* ============================ Übersicht: Balken ========================== */
+
+/*
+  Eine einzige Messgröße (Euro) über mehrere Kategorien: deshalb ein Farbton
+  für alle Balken statt bunter Kategoriefarben. Die Kategorie steht als Text
+  daneben, die Identität hängt also nie an der Farbe allein.
+*/
+.bars {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.bar-row {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.bar-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bar-icon {
+  display: grid;
+  place-items: center;
+  color: var(--text-dim);
+}
+
+.bar-icon svg { width: 17px; height: 17px; }
+
+.bar-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 15px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.bar-value {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.bar-track {
+  display: block;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--surface-2);
+}
+
+.bar-fill {
+  display: block;
+  height: 100%;
+  min-width: 4px;
+  /* Am Nullpunkt bündig, nur das Werteende ist gerundet. */
+  border-radius: 0 4px 4px 0;
+  background: var(--accent);
+}
+
+.bar-note {
+  font-size: 12.5px;
+  color: var(--text-dim);
+}
+
+/* ============================ Kontostand / Ausgleich ===================== */
+
+.settle {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+
+/*
+  Eine Zeile ist eine kleine Spalte: oben Namen + Pfeil + Betrag, darunter
+  optional der Gruppenname (nur auf der Übersicht nötig, wo mehrere Gruppen
+  gemischt auftauchen). So sieht die Übersicht exakt so aus wie die
+  „So wird ausgeglichen"-Karte in der Gruppe – nur eben gefiltert auf einen
+  selbst.
+*/
+.settle-row {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+/* Auf der Übersicht antippbar, um die Bankverbindung zu öffnen. */
+.settle-row-clickable {
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: transform .1s ease, opacity .1s ease;
+}
+
+.settle-row-clickable:active { transform: scale(.98); opacity: .8; }
+
+/* Trennt „betrifft mich" (oben, antippbar) von „zwischen den anderen".
+   Ohne diese Grenze war nicht erkennbar, warum manche Zeilen reagieren
+   und andere nicht. */
+.settle-divider {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 13px 0 11px;
+  color: var(--text-dim);
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+.settle-divider::before,
+.settle-divider::after {
+  content: '';
+  flex: 1 1 auto;
+  height: 1px;
+  background: var(--line);
+}
+
+/* Fremde Ausgleichszeilen sind reine Information – sichtbar, aber ruhiger. */
+.settle-row:not(.settle-row-clickable) { opacity: .62; }
+
+.settle-line {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 15px;
+}
+
+/* Bild und Name gehören zusammen und dürfen nur GEMEINSAM schrumpfen –
+   sonst rutscht bei langen Namen der Name unter sein eigenes Bild. */
+.settle-person {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+.settle-from,
+.settle-to {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.settle-arrow {
+  display: grid;
+  place-items: center;
+  color: var(--text-dim);
+}
+
+.settle-arrow svg { width: 17px; height: 17px; }
+
+.settle-amount {
+  flex: 0 0 auto;
+  margin-left: auto;
+  white-space: nowrap;
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Grün = ich bekomme, Rost = ich muss zahlen – gleiche Farbsprache wie beim
+   Gesamtsaldo und beim Kontostand, damit man es nicht erst lesen muss. */
+.settle-amount.is-pos { color: var(--pos); }
+.settle-amount.is-neg { color: var(--neg); }
+
+/* Steht unter „Von → An", eingerückt auf Höhe des ersten Namens –
+   also um Bildbreite (24px) plus Abstand (7px) versetzt. */
+.settle-sub {
+  padding-left: 31px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 12.5px;
+  color: var(--text-dim);
+}
+
+.settle-done {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0;
+  color: var(--text-dim);
+  font-size: 14.5px;
+}
+
+.settle-done svg {
+  flex: 0 0 auto;
+  width: 19px;
+  height: 19px;
+  color: var(--pos);
+}
+
+.settle-note {
+  margin: 2px 0 0;
+  padding-top: 11px;
+  border-top: 1px solid var(--line);
+  color: var(--text-dim);
+  font-size: 13.5px;
+}
+
+/* =============================== Geschenke ============================== */
+
+.secret-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin: -4px 0 10px;
+  padding: 10px 13px;
+  border: 1px dashed var(--line);
+  border-radius: 12px;
+  color: var(--text-dim);
+  font-size: 13.5px;
+  line-height: 1.4;
+}
+
+.secret-note svg {
+  flex: 0 0 auto;
+  width: 17px;
+  height: 17px;
+  margin-top: 1px;
+}
+
+/* =========================== Offene Zahlungen =========================== */
+
+/* Gemeldet, aber noch nicht bestätigt: zurückgenommen dargestellt, damit man
+   auf einen Blick sieht, dass der Betrag noch nicht zählt. */
+.row-unconfirmed .row-amount,
+.row-unconfirmed .row-title { opacity: .6; }
+
+/* ----------------------- Zahlungen bestätigen ----------------------------
+   Steht ganz oben auf der Übersicht: das Einzige auf der Seite, wo jemand
+   auf eine Reaktion wartet. Deshalb bewusst etwas kräftiger als der Rest –
+   aber ohne Alarmrot, es ist ja nichts kaputt. */
+.count.is-alert {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-radius: 999px;
+  padding: 1px 8px;
+  font-family: var(--font-display);
+  font-size: 13px;
+}
+
+.confirm-card { padding: 4px 0; }
+
+.confirm-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+}
+.confirm-row + .confirm-row {
+  border-top: 1px solid color-mix(in srgb, var(--text) 8%, transparent);
+}
+
+.confirm-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 14px;
+  line-height: 1.45;
+}
+.confirm-text strong { font-family: var(--font-display); font-weight: 600; }
+.confirm-text .is-pos { color: var(--pos); }
+
+.confirm-sub {
+  display: block;
+  margin-top: 2px;
+  font-size: 12.5px;
+  color: var(--text-dim);
+}
+
+/* Knöpfe schmal halten: die Zeile muss auch bei langen Namen auf ein
+   Handydisplay passen, ohne umzubrechen. */
+.confirm-actions {
+  flex: 0 0 auto;
+  display: flex;
+  gap: 6px;
+}
+.confirm-actions .btn {
+  padding: 8px 12px;
+  font-size: 13.5px;
+  white-space: nowrap;
+}
+
+/* Eigene Meldung: reine Information, deshalb zurückgenommen. */
+.confirm-row.is-waiting { opacity: .72; }
+
+/* Kleiner Vermerk an der Ausgleichszeile – bewusst unauffällig: der Betrag
+   bleibt die Hauptinformation, das hier ist nur der Zwischenstand. */
+.settle-tag {
+  display: block;
+  margin-top: 3px;
+  font-size: 12px;
+  color: var(--accent);
+}
+
+.pay-pending {
+  margin-top: 4px;
+  padding: 14px;
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+}
+.pay-pending-text { margin: 0 0 12px; font-size: 14.5px; line-height: 1.45; }
+.pay-pending-text strong { font-family: var(--font-display); }
+.pay-pending-actions { display: flex; gap: 8px; }
+.pay-pending-actions .btn { flex: 1 1 0; }
+.pay-pending-actions .btn-primary { flex: 1.5 1 0; }
+
+.pay-waiting {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0 0;
+  font-size: 13.5px;
+  color: var(--text-dim);
+  line-height: 1.45;
+}
+.pay-waiting svg {
+  flex: 0 0 auto;
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+.pay-waiting strong { font-family: var(--font-display); color: var(--text); }
+
+.pay-summary {
+  margin: -4px 0 10px;
+  padding-left: 3px;
+  color: var(--text-dim);
+  font-size: 14px;
+}
+
+.pay-summary strong { font-family: var(--font-display); }
+.pay-summary .is-pos { color: var(--pos); }
+.pay-summary .is-neg { color: var(--neg); }
+
+.pay-hero {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-bottom: 20px;
+}
+
+.pay-hero-label {
+  font-size: 14.5px;
+  color: var(--text-dim);
+}
+
+.pay-hero-amount {
+  font-family: var(--font-display);
+  font-size: 33px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.15;
+}
+
+.pay-hero-amount.is-pos { color: var(--pos); }
+.pay-hero-amount.is-neg { color: var(--neg); }
+
+.pay-hero-note {
+  font-size: 13.5px;
+  color: var(--text-dim);
+}
+
+.pay-details-label {
+  margin: 0 0 8px 3px;
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+.pay-details {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: var(--gap);
+}
+
+.pay-line {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px 10px;
+  align-items: center;
+}
+
+.pay-line-label {
+  grid-column: 1 / -1;
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+/* IBAN in Vierergruppen – darf umbrechen statt die Karte zu sprengen. */
+.pay-line-value {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .01em;
+  overflow-wrap: anywhere;
+}
+
+.pay-copy {
+  height: 38px;
+  padding: 0 15px;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.pay-missing { margin-bottom: var(--gap); }
+
+.pay-done { margin-bottom: 8px; }
+
+/* ============================== Teilen durch ============================= */
+
+.participants {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.chip-toggle {
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  color: var(--text-dim);
+  font-family: var(--font-body);
+  font-size: 14px;
+  cursor: pointer;
+  transition: transform .1s ease, background-color .15s ease, border-color .15s ease, color .15s ease;
+}
+
+.chip-toggle[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface));
+  color: var(--accent);
+}
+
+.chip-toggle:active { transform: scale(.94); }
+
+/* --------------------------- Ungleich aufteilen -------------------------- */
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: var(--gap);
+  cursor: pointer;
+}
+
+.check input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.check span {
+  font-size: 15px;
+  color: var(--text-dim);
+}
+
+.split-editor {
+  margin: -6px 0 var(--gap);
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  animation: split-open .18s ease;
+}
+
+@keyframes split-open {
+  from { opacity: 0; transform: translateY(-6px); }
+}
+
+.segmented-small { margin-bottom: 14px; }
+.segmented-small .seg { height: 34px; font-size: 14px; }
+
+.split-row {
+  display: grid;
+  grid-template-columns: 1fr 92px auto;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 9px;
+}
+
+.split-name {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 15px;
+}
+
+.split-input {
+  width: 100%;
+  height: 40px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 15px;
+  text-align: right;
+}
+
+.split-input:focus { outline: none; border-color: var(--accent); }
+
+.split-unit {
+  font-size: 13.5px;
+  color: var(--text-dim);
+}
+
+/* Bei Anteilen der errechnete Eurobetrag – füllt die dritte Spalte. */
+.split-calc {
+  grid-column: 2 / -1;
+  margin-top: -4px;
+  font-size: 12.5px;
+  color: var(--text-dim);
+  text-align: right;
+}
+
+.split-calc:empty { display: none; }
+
+.split-balance {
+  margin: 12px 0 0;
+  padding-top: 11px;
+  border-top: 1px solid var(--line);
+  font-size: 13.5px;
+}
+
+.split-balance.is-ok   { color: var(--pos); }
+.split-balance.is-warn { color: var(--text-dim); }
+
+/* =============================== Barcode ================================= */
+
+.btn-scan {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  margin-bottom: var(--gap);
+}
+
+.btn-scan svg { width: 20px; height: 20px; }
+
+/* Beleg-Vorschau im Ausgabenformular: zeigt das Foto direkt, damit man
+   sieht, dass der Beleg wirklich dranhängt – ein reiner Knopf wurde
+   leicht übersehen. */
+.receipt-chip {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  margin: -4px 0 var(--gap);
+  padding: 9px 11px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+.receipt-chip:active { background: var(--surface-2); transform: scale(.99); }
+.receipt-chip-img {
+  width: 42px;
+  height: 52px;
+  flex: 0 0 auto;
+  object-fit: cover;
+  border-radius: 8px;
+  background: var(--surface-2);
+}
+.receipt-chip-body { flex: 1 1 auto; min-width: 0; }
+.receipt-chip-title { display: block; font-family: var(--font-display); font-size: .96rem; }
+.receipt-chip-sub { display: block; font-size: .8rem; color: var(--text-dim); }
+.receipt-chip .row-chevron { flex: 0 0 auto; }
+
+/* Kennzeichen an Ausgabenzeilen mit Beleg */
+.receipt-tag {
+  margin-left: 7px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-size: .68rem;
+  vertical-align: middle;
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface));
+  color: var(--accent);
+}
+
+.scan-result {
+  margin: -4px 0 var(--gap);
+  padding: 11px 13px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface-2);
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.scan-result.is-ok {
+  border-color: color-mix(in srgb, var(--pos) 40%, var(--line));
+  background: color-mix(in srgb, var(--pos) 12%, var(--surface));
+}
+
+.scan-result.is-error {
+  border-color: color-mix(in srgb, var(--neg) 40%, var(--line));
+  background: color-mix(in srgb, var(--neg) 12%, var(--surface));
+}
+
+.scanner {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  background: #000;
+}
+
+.scanner-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.scanner-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 24px;
+}
+
+/* Zielrahmen – reine Sehhilfe, gelesen wird das ganze Bild. */
+.scanner-frame {
+  width: min(78vw, 320px);
+  height: min(78vw, 320px);
+  border: 2px solid rgba(255, 255, 255, .85);
+  border-radius: 14px;
+  /* Fester statt viewport-abhängiger Wert (100vmax): Auf manchen Handy-GPUs
+     führte ein riesiger, bei jedem Öffnen neu berechneter Schatten beim
+     wiederholten Ein-/Ausblenden der Kamera zu Darstellungsfehlern. 2000px
+     reicht für jeden realistischen Bildschirm. */
+  box-shadow: 0 0 0 2000px rgba(0, 0, 0, .45);
+}
+
+.scanner-hint {
+  margin: 0;
+  color: #fff;
+  font-size: 15px;
+  text-align: center;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, .6);
+}
+
+.scanner-overlay .btn {
+  padding: 0 26px;
+  border-color: rgba(255, 255, 255, .6);
+  background: rgba(0, 0, 0, .4);
+  color: #fff;
+}
+
+.scanner-torch {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  border-color: rgba(255, 255, 255, .6);
+  background: rgba(0, 0, 0, .4);
+  color: #fff;
+}
+
+.scanner-torch[aria-pressed="true"] {
+  background: rgba(255, 255, 255, .85);
+  color: #000;
+}
+
+/* ----------------------------------- Formular ---------------------------- */
+
+.field {
+  display: block;
+  margin-bottom: var(--gap);
+}
+
+/* Erweiterte, optionale Formularfelder – zugeklappt, damit der übliche Fall
+   (nur ein Name) nicht mit selten gebrauchten Feldern überladen wirkt. */
+.advanced-fields {
+  margin: -6px 0 var(--gap);
+}
+.advanced-fields summary {
+  padding: 9px 2px;
+  color: var(--text-dim);
+  font-size: 13.5px;
+  cursor: pointer;
+  list-style: none;
+}
+.advanced-fields summary::-webkit-details-marker { display: none; }
+.advanced-fields summary::before {
+  content: '›';
+  display: inline-block;
+  margin-right: 6px;
+  transition: transform .15s ease;
+}
+.advanced-fields[open] summary::before { transform: rotate(90deg); }
+.advanced-fields[open] summary { color: var(--text); }
+.advanced-fields .field-row { margin-top: 6px; }
+
+.field-row {
+  display: flex;
+  gap: 10px;
+}
+.field-row .field { flex: 1 1 0; min-width: 0; margin-bottom: var(--gap); }
+
+/* Auge zum Anschauen im Passwortfeld. Sitzt im Feld statt daneben, damit
+   die Formularbreite gleich bleibt; der Text bekommt rechts Platz, damit
+   lange Passwörter nicht unter dem Knopf verschwinden. */
+.field:has(.pw-toggle) { position: relative; }
+.field:has(.pw-toggle) input { padding-right: 46px; }
+
+.pw-toggle {
+  position: absolute;
+  right: 5px;
+  bottom: 0;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: var(--ctrl-h);
+  border: none;
+  background: none;
+  color: var(--text-dim);
+  cursor: pointer;
+}
+.pw-toggle svg {
+  width: 21px;
+  height: 21px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.pw-toggle[aria-pressed="true"] { color: var(--accent); }
+.pw-toggle:active { transform: scale(.92); }
+
+/* Hat das Feld einen Hinweistext darunter, darf der Knopf nicht mitwandern. */
+.field:has(.pw-toggle):has(small) .pw-toggle { bottom: auto; top: 27px; }
+
+.field > span {
+  display: block;
+  margin-bottom: 5px;
+  padding-left: 2px;
+  font-size: 14px;
+  color: var(--text-dim);
+}
+
+.field input,
+.field select {
+  width: 100%;
+  height: var(--ctrl-h);
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background: var(--surface-2);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 16px;
+}
+
+.field select { appearance: none; }
+
+.field input:focus,
+.field select:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: var(--surface);
+}
+
+.field small {
+  display: block;
+  margin-top: 5px;
+  padding-left: 2px;
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+.hint {
+  margin: -4px 0 var(--gap);
+  padding-left: 2px;
+  font-size: 13.5px;
+  color: var(--text-dim);
+}
+
+.error {
+  margin: 0 0 var(--gap);
+  color: var(--neg);
+  font-size: 14px;
+}
+
+.sheet-actions {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.btn {
+  height: var(--ctrl-h);
+  border: 1px solid transparent;
+  border-radius: 13px;
+  font-family: var(--font-body);
+  font-size: 16px;
+  cursor: pointer;
+  transition: transform .1s ease, filter .12s ease;
+}
+
+.btn-ghost {
+  border-color: var(--line);
+  background: transparent;
+  color: var(--text-dim);
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: var(--accent-ink);
+  box-shadow: var(--shadow-soft);
+}
+
+.btn-danger {
+  border-color: color-mix(in srgb, var(--neg) 45%, var(--line));
+  background: transparent;
+  color: var(--neg);
+}
+
+.btn-block {
+  display: block;
+  width: 100%;
+}
+
+.btn:active { filter: brightness(.94); transform: scale(.98); }
+.btn:disabled { opacity: .55; cursor: default; }
+
+/* Kurzes Aufblitzen beim Antippen (siehe flashTap() in app.js) – ein Ring,
+   der aufleuchtet und nach außen ausfadet. Läuft über box-shadow statt
+   Hintergrundfarbe, damit es unabhängig von der eigenen Farbe des Knopfes
+   funktioniert (auch bei schon farbigen Knöpfen wie .btn-primary sichtbar)
+   und sich automatisch an eckige wie runde Formen anpasst. */
+@keyframes tap-flash-kf {
+  from { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 45%, transparent); }
+  to   { box-shadow: 0 0 0 9px color-mix(in srgb, var(--accent) 0%, transparent); }
+}
+.tap-flash { animation: tap-flash-kf .45s ease-out; }
+
+/* Mehrere gestapelte Vollbreiten-Knöpfe brauchen Luft dazwischen. */
+.btn-block + .btn-block { margin-top: 9px; }
+
+/* ========================= Seitenübergänge (View Transitions) ============ */
+/*
+  render() in app.js wickelt jeden Ansichtswechsel in document.startViewTransition()
+  ein, wo der Browser das unterstützt (Chrome/Edge, auch mobil) – sonst greift
+  einfach kein Effekt, kein Fehler. Standardmäßig ein schneller Crossfade statt
+  der eher trägen Standardanimation; go()/goBack() setzen zusätzlich data-nav-dir
+  am <html>-Element für einen gerichteten Rutsch-Effekt (rein/raus).
+*/
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: .16s;
+  animation-timing-function: ease;
+}
+
+:root[data-nav-dir="forward"]::view-transition-old(root) {
+  animation: ft-nav-out-forward .18s ease both;
+}
+:root[data-nav-dir="forward"]::view-transition-new(root) {
+  animation: ft-nav-in-forward .22s ease both;
+}
+:root[data-nav-dir="back"]::view-transition-old(root) {
+  animation: ft-nav-out-back .18s ease both;
+}
+:root[data-nav-dir="back"]::view-transition-new(root) {
+  animation: ft-nav-in-back .22s ease both;
+}
+
+@keyframes ft-nav-out-forward { to   { transform: translateX(-15%); opacity: .35; } }
+@keyframes ft-nav-in-forward  { from { transform: translateX(100%); } }
+@keyframes ft-nav-out-back    { to   { transform: translateX(100%); } }
+@keyframes ft-nav-in-back     { from { transform: translateX(-15%); opacity: .35; } }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}

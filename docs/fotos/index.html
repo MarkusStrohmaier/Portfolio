@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PictureSort — Fotos & Videos nach Datum sortieren</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🗂️</text></svg>">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-icon">🗂️</span>
+    <div>
+      <h1>PictureSort</h1>
+      <p>Fotos & Videos per Drag &amp; Drop nach Aufnahmedatum in Ordner sortieren</p>
+    </div>
+  </div>
+  <div id="envWarning" class="env-warning" hidden></div>
+</header>
+
+<main>
+  <!-- ------------------------------------------------ Schritt 1: Einlesen -->
+  <section id="dropzone" class="dropzone">
+    <div class="dropzone-inner">
+      <div class="dz-icon">📥</div>
+      <h2>Dateien oder Ordner hierher ziehen</h2>
+      <p class="muted">Unterordner werden automatisch mit eingelesen. Nichts wird hochgeladen — alles bleibt auf deinem Rechner.</p>
+      <div class="dz-buttons">
+        <button type="button" class="btn" id="pickFiles">Dateien wählen</button>
+        <button type="button" class="btn ghost" id="pickFolder">Ordner wählen</button>
+      </div>
+    </div>
+    <input type="file" id="fileInput" multiple hidden>
+    <input type="file" id="folderInput" webkitdirectory multiple hidden>
+  </section>
+
+  <div id="scanStatus" class="scan-status" hidden>
+    <div class="bar"><div class="bar-fill" id="scanBar"></div></div>
+    <span id="scanText">Lese Metadaten …</span>
+  </div>
+
+  <!-- ------------------------------------------------ Schritt 2: Optionen -->
+  <section class="panel options" id="optionsPanel" hidden>
+    <h3>Optionen</h3>
+    <div class="options-grid">
+      <label class="field">
+        <span>Ordner gruppieren nach</span>
+        <select id="optGrouping">
+          <option value="day" selected>Tag — 20260707</option>
+          <option value="day-dash">Tag mit Bindestrich — 2026-07-07</option>
+          <option value="month">Monat — 202607</option>
+          <option value="year-month">Jahr / Monat — 2026/07</option>
+          <option value="year">Jahr — 2026</option>
+        </select>
+      </label>
+
+      <label class="field">
+        <span>Datum ermitteln aus</span>
+        <select id="optPriority">
+          <option value="meta" selected>Metadaten (EXIF / Video), sonst Dateiname</option>
+          <option value="name">Dateiname, sonst Metadaten</option>
+          <option value="mtime">Nur Änderungsdatum der Datei</option>
+        </select>
+      </label>
+
+      <label class="field">
+        <span>Ordner für Dateien ohne Datum</span>
+        <input type="text" id="optUnknown" value="Ohne Datum" spellcheck="false">
+      </label>
+
+      <div class="field checks">
+        <span>Zusätzlich</span>
+        <label class="check"><input type="checkbox" id="optMediaOnly" checked> Nur Fotos &amp; Videos übernehmen</label>
+        <label class="check"><input type="checkbox" id="optSplitType"> Unterordner „Fotos“ / „Videos“ anlegen</label>
+        <label class="check"><input type="checkbox" id="optSkipExisting" checked> Vorhandene Dateien im Ziel überspringen</label>
+      </div>
+    </div>
+  </section>
+
+  <!-- ------------------------------------------------ Schritt 3: Vorschau -->
+  <section class="panel result" id="resultPanel" hidden>
+    <div class="result-head">
+      <h3>Vorschau</h3>
+      <div class="summary" id="summary"></div>
+      <div class="result-actions">
+        <button type="button" class="btn ghost small" id="expandAll">Alle aufklappen</button>
+        <button type="button" class="btn ghost small" id="clearAll">Zurücksetzen</button>
+      </div>
+    </div>
+    <div id="groups" class="groups"></div>
+    <div id="skipped" class="skipped" hidden></div>
+  </section>
+
+  <!-- ------------------------------------------------ Schritt 4: Ausgabe -->
+  <section class="panel export" id="exportPanel" hidden>
+    <h3>Speichern</h3>
+    <div class="export-actions">
+      <button type="button" class="btn primary" id="saveFolder">
+        <span class="btn-title">📁 In Ordner speichern</span>
+        <span class="btn-sub">Zielordner wählen — die Datumsordner werden dort angelegt</span>
+      </button>
+      <button type="button" class="btn primary alt" id="saveZip">
+        <span class="btn-title">🗜️ Als ZIP speichern</span>
+        <span class="btn-sub">Ein Archiv mit allen Datumsordnern darin</span>
+      </button>
+    </div>
+    <div id="progress" class="progress" hidden>
+      <div class="bar"><div class="bar-fill" id="progressBar"></div></div>
+      <span id="progressText"></span>
+      <button type="button" class="btn ghost small" id="cancelBtn">Abbrechen</button>
+    </div>
+    <div id="log" class="log" hidden></div>
+  </section>
+</main>
+
+<script type="module" src="js/app.js"></script>
+<script>
+// Wird die Seite per Doppelklick (file://) geoeffnet, blockiert der Browser
+// die JavaScript-Module. Dann statt einer toten Seite einen Hinweis zeigen.
+setTimeout(function () {
+  if (window.__pictureSortReady) return;
+  var box = document.getElementById('envWarning');
+  box.innerHTML =
+    'Die App konnte nicht starten, weil der Browser Skripte bei direkt geöffneten Dateien blockiert.<br>' +
+    'Bitte <b>start.cmd</b> im Programmordner doppelklicken — die App öffnet sich dann ' +
+    'automatisch im Browser.';
+  box.hidden = false;
+  document.getElementById('dropzone').style.opacity = '.4';
+}, location.protocol === 'file:' ? 800 : 6000);
+</script>
+</body>
+</html>

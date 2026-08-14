@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- ANPASSEN: Titel + Beschreibung -->
+<title>Markus Strohmaier — Ich baue, was mir fehlt</title>
+<meta name="description" content="Vier Werkzeuge, gebaut in Paldau. Jedes für genau ein Problem im Alltag.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Azeret+Mono:wght@300;400;500&family=Manrope:wght@300;400;500&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --void:#08090B;
+  --surface:#14171C;
+  --line:rgba(255,255,255,.10);
+  --chrome:#F3F5F7;
+  --muted:#868D97;
+  --xenon:#A8D8FF;
+  --ember:#FF4A28;
+
+  --display:"Archivo",system-ui,sans-serif;
+  --body:"Manrope",system-ui,sans-serif;
+  --mono:"Azeret Mono",ui-monospace,monospace;
+
+  --pad:clamp(1.25rem,4.5vw,5rem);
+  --max:1440px;
+  --ease:cubic-bezier(.16,1,.3,1);
+}
+
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth;background:var(--void)}
+body{
+  margin:0;
+  background:var(--void);
+  color:var(--chrome);
+  font-family:var(--body);
+  font-weight:300;
+  font-size:clamp(1rem,.4vw + .92rem,1.08rem);
+  line-height:1.65;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+img,video{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+
+.wrap{max-width:var(--max);margin-inline:auto;padding-inline:var(--pad)}
+
+.label{
+  font-family:var(--mono);
+  font-size:.68rem;font-weight:400;
+  letter-spacing:.22em;text-transform:uppercase;
+  color:var(--muted);margin:0;
+}
+
+/* ══════════ Scroll-Fortschritt ══════════ */
+.progress{
+  position:fixed;inset:0 auto auto 0;height:2px;width:100%;
+  transform:scaleX(0);transform-origin:left;
+  background:linear-gradient(90deg,var(--xenon),var(--ember));
+  z-index:90;
+}
+
+/* ══════════ Navigation ══════════ */
+.nav{
+  position:fixed;inset:0 0 auto 0;z-index:80;
+  padding-block:1.15rem;
+  backdrop-filter:blur(14px);
+  background:linear-gradient(to bottom,rgba(8,9,11,.85),transparent);
+}
+.nav__inner{display:flex;align-items:center;justify-content:space-between;gap:1rem}
+.nav__mark{
+  font-family:var(--display);
+  font-variation-settings:"wdth" 108,"wght" 800;
+  font-size:.92rem;letter-spacing:.02em;text-transform:uppercase;
+}
+.nav__links{display:flex;gap:2rem;font-family:var(--mono);font-size:.72rem;letter-spacing:.14em;text-transform:uppercase}
+.nav__links a{color:var(--muted);position:relative;padding-bottom:4px;transition:color .3s ease}
+.nav__links a::after{
+  content:"";position:absolute;left:0;bottom:0;height:1px;width:100%;
+  background:var(--xenon);transform:scaleX(0);transform-origin:right;
+  transition:transform .45s var(--ease);
+}
+.nav__links a:hover,.nav__links a:focus-visible{color:var(--chrome)}
+.nav__links a:hover::after,.nav__links a:focus-visible::after{transform:scaleX(1);transform-origin:left}
+@media (max-width:700px){.nav__links{gap:1.1rem;font-size:.65rem}}
+
+/* ══════════ Hero ══════════ */
+.hero{
+  position:relative;min-height:100svh;
+  display:flex;flex-direction:column;justify-content:flex-end;
+  padding-block:8rem 3.5rem;overflow:hidden;
+}
+.hero__glow{
+  position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(560px circle at var(--mx,50%) var(--my,38%),rgba(168,216,255,.13),transparent 62%);
+}
+.hero__grid{
+  position:absolute;inset:0;pointer-events:none;opacity:.5;
+  background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
+  background-size:clamp(60px,7vw,110px) clamp(60px,7vw,110px);
+  -webkit-mask-image:radial-gradient(120% 90% at 50% 30%,#000 25%,transparent 78%);
+  mask-image:radial-gradient(120% 90% at 50% 30%,#000 25%,transparent 78%);
+}
+.hero__sheen{
+  position:absolute;top:0;left:-45%;width:35%;height:100%;pointer-events:none;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.055),transparent);
+  animation:sheen 9s ease-in-out 1.6s infinite;
+}
+@keyframes sheen{0%{left:-45%}55%,100%{left:130%}}
+
+.hero__inner{position:relative;width:100%}
+.hero .label{opacity:0;animation:fadeUp .9s var(--ease) .15s forwards}
+
+.headline{
+  font-family:var(--display);
+  font-variation-settings:"wdth" 118,"wght" 850;
+  font-size:clamp(2.9rem,10.5vw,9.5rem);
+  line-height:.86;letter-spacing:-.035em;
+  text-transform:uppercase;
+  margin:1.2rem 0 0;max-width:14ch;
+}
+.headline .w{display:inline-block;overflow:hidden;vertical-align:bottom;padding-right:.06em}
+.headline .i{
+  display:inline-block;transform:translateY(105%);
+  animation:riseIn 1.05s var(--ease) forwards;
+  background:linear-gradient(176deg,#FFFFFF 6%,#CDD3DA 42%,#828A94 56%,#F0F3F6 88%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+@keyframes riseIn{to{transform:translateY(0)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+
+.hero__foot{
+  display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;
+  gap:2rem;margin-top:clamp(2.2rem,5vw,3.5rem);
+  border-top:1px solid var(--line);padding-top:1.6rem;
+  opacity:0;animation:fadeUp 1s var(--ease) 1.05s forwards;
+}
+.hero__foot p{margin:0;max-width:40ch;color:var(--muted)}
+.scroller{display:flex;align-items:center;gap:.7rem;font-family:var(--mono);font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+.scroller i{display:block;width:44px;height:1px;background:var(--line);position:relative;overflow:hidden}
+.scroller i::after{content:"";position:absolute;inset:0;background:var(--xenon);animation:track 2.2s ease-in-out infinite}
+@keyframes track{0%{transform:translateX(-100%)}60%,100%{transform:translateX(100%)}}
+
+/* ══════════ Manifest: Text hellt beim Scrollen auf ══════════ */
+.manifest{padding-block:clamp(7rem,16vw,14rem)}
+.manifest__text{
+  font-family:var(--display);
+  font-variation-settings:"wdth" 88,"wght" 500;
+  font-size:clamp(1.5rem,4.2vw,3.4rem);
+  line-height:1.2;letter-spacing:-.02em;
+  margin:0;max-width:22ch;
+}
+.manifest__text span{color:rgba(243,245,247,.14);transition:color .35s ease}
+.manifest__text span.lit{color:var(--chrome)}
+
+/* ══════════ Werkzeuge ══════════ */
+.rail{
+  display:flex;align-items:baseline;gap:1.2rem;
+  border-top:1px solid var(--line);padding-top:.9rem;margin-bottom:clamp(3rem,7vw,6rem);
+}
+.rail h2{
+  font-family:var(--display);font-variation-settings:"wdth" 100,"wght" 700;
+  font-size:.95rem;letter-spacing:.16em;text-transform:uppercase;margin:0;
+}
+.rail span{margin-left:auto;font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;color:var(--muted)}
+
+.tool{padding-block:clamp(4rem,10vw,9rem);border-bottom:1px solid var(--line)}
+.tool:last-of-type{border-bottom:0}
+.tool__index{
+  font-family:var(--mono);font-size:.7rem;letter-spacing:.24em;color:var(--xenon);
+  display:flex;align-items:center;gap:.8rem;margin:0 0 1.1rem;
+}
+.tool__index::after{content:"";flex:1;height:1px;background:var(--line);max-width:220px}
+
+.tool__name{
+  font-family:var(--display);
+  font-variation-settings:"wdth" 112,"wght" 800;
+  font-size:clamp(2.3rem,7vw,6rem);
+  line-height:.9;letter-spacing:-.035em;text-transform:uppercase;
+  margin:0 0 1.4rem;
+}
+.tool__friction{
+  font-family:var(--mono);font-size:.8rem;color:var(--muted);
+  margin:0 0 2.5rem;max-width:52ch;
+}
+.tool__friction b{font-weight:400;color:var(--ember)}
+
+.tool__split{display:grid;grid-template-columns:1fr;gap:clamp(2rem,4vw,4rem)}
+@media (min-width:900px){.tool__split{grid-template-columns:1.35fr 1fr;align-items:start}}
+
+/* Medienfeld */
+.stage{
+  position:relative;margin:0;
+  border:1px solid var(--line);border-radius:4px;
+  background:var(--surface);overflow:hidden;
+}
+.stage::after{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(160deg,rgba(168,216,255,.10),transparent 45%);
+}
+.stage video,.stage img{width:100%;height:auto}
+.stage__empty{
+  aspect-ratio:16/10;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:.5rem;text-align:center;padding:2rem;
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);
+  border:1px dashed var(--line);margin:.6rem;border-radius:3px;
+}
+.stage__empty b{color:var(--chrome);font-weight:400;font-size:.82rem;letter-spacing:.1em}
+
+/* ── Live-Einbettung: echtes Tool im Rahmen ── */
+.stage--live::after{display:none}
+.stage__chrome{
+  display:flex;align-items:center;gap:.6rem;
+  padding:.65rem .9rem;border-bottom:1px solid var(--line);
+  background:rgba(255,255,255,.025);
+}
+.stage__dots{display:flex;gap:5px;flex:none}
+.stage__dots i{width:8px;height:8px;border-radius:50%;background:var(--line)}
+.stage__url{
+  font-family:var(--mono);font-size:.64rem;letter-spacing:.06em;color:var(--muted);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.stage__status{
+  margin-left:auto;flex:none;display:flex;align-items:center;gap:.45rem;
+  font-family:var(--mono);font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--muted);white-space:nowrap;
+}
+.stage__status::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--muted);flex:none}
+.stage__status[data-state="live"]{color:var(--xenon)}
+.stage__status[data-state="live"]::before{
+  background:var(--xenon);
+  box-shadow:0 0 0 0 rgba(168,216,255,.5);
+  animation:pulse 2.4s ease-out infinite;
+}
+@keyframes pulse{70%{box-shadow:0 0 0 7px rgba(168,216,255,0)}100%{box-shadow:0 0 0 0 rgba(168,216,255,0)}}
+
+.stage__viewport{position:relative;aspect-ratio:16/10;overflow:hidden;background:var(--surface)}
+/* Größe und Maßstab setzt fit() im Skript – jede App bekommt die
+   Leinwandbreite, für die sie gebaut ist (data-width am <figure>). */
+.stage__viewport iframe{
+  position:absolute;top:0;left:0;
+  border:0;
+  transform-origin:top left;
+  opacity:0;transition:opacity .9s var(--ease);
+}
+.stage__viewport iframe.on{opacity:1}
+
+/* Scanlinie, solange verbunden wird */
+.stage__viewport::before{
+  content:"";position:absolute;left:0;right:0;top:0;height:1px;z-index:1;
+  background:linear-gradient(90deg,transparent,var(--xenon),transparent);
+  animation:scan 1.9s ease-in-out infinite;
+}
+.stage--live.is-ready .stage__viewport::before,
+.stage--live.is-off .stage__viewport::before{display:none}
+@keyframes scan{0%{transform:translateY(0);opacity:0}20%{opacity:.8}100%{transform:translateY(46vh);opacity:0}}
+
+/* Klick-Schutz: verhindert, dass die App beim Vorbeiscrollen Eingaben schluckt */
+.stage__shield{
+  position:absolute;inset:0;z-index:2;cursor:pointer;border:0;width:100%;
+  display:flex;align-items:flex-end;justify-content:center;padding:0 0 1.3rem;
+  background:linear-gradient(to top,rgba(8,9,11,.6),transparent 42%);
+  transition:opacity .45s ease;
+}
+.stage__shield b{
+  font-family:var(--mono);font-size:.6rem;font-weight:400;
+  letter-spacing:.18em;text-transform:uppercase;color:var(--chrome);
+  border:1px solid var(--line);border-radius:2px;padding:.55rem 1.1rem;
+  backdrop-filter:blur(8px);background:rgba(8,9,11,.4);
+}
+.stage__shield.off{opacity:0;pointer-events:none}
+
+.stage__fallback{display:none}
+.stage--live.is-off .stage__viewport,
+.stage--live.is-off .stage__shield{display:none}
+.stage--live.is-off .stage__fallback{display:block}
+
+/* ── Eingebettet: läuft komplett im Browser, kein Server nötig ── */
+.stage--embed .stage__status{color:var(--xenon)}
+.stage--embed .stage__status::before{
+  background:var(--xenon);
+  box-shadow:0 0 0 0 rgba(168,216,255,.5);
+  animation:pulse 2.4s ease-out infinite;
+}
+.stage--embed .stage__viewport{aspect-ratio:16/11}
+.stage--embed .stage__viewport iframe{
+  position:static;width:100%;height:100%;opacity:1;transform:none;
+}
+/* Mit data-width bekommt auch ein eingebettetes Werkzeug seine eigene
+   Leinwand und wird als Ganzes verkleinert – nötig, wenn sein Layout für
+   deutlich mehr Breite gebaut ist als der Vorschaukasten hergibt.
+   Maße und Maßstab setzt fit() im Skript. */
+.stage--embed[data-width] .stage__viewport iframe{
+  position:absolute;top:0;left:0;transform-origin:top left;
+}
+.stage--embed .stage__viewport::before{display:none}
+
+/* ══════════ Werkzeug-Fenster (Großansicht nach Aktivierung) ══════════ */
+.toolmodal{
+  position:fixed;inset:0;z-index:200;display:none;
+  align-items:center;justify-content:center;
+  padding:3vh 3vw;
+  background:rgba(8,9,11,.8);backdrop-filter:blur(6px);
+}
+.toolmodal.open{display:flex}
+.toolmodal__panel{
+  width:min(1200px,94vw);height:90vh;
+  background:var(--surface);border:1px solid var(--line);border-radius:6px;
+  overflow:hidden;display:flex;flex-direction:column;
+  box-shadow:0 30px 80px rgba(0,0,0,.55);
+}
+.toolmodal__bar{
+  display:flex;align-items:center;gap:.6rem;flex:none;
+  padding:.7rem 1rem;border-bottom:1px solid var(--line);
+  background:rgba(255,255,255,.025);
+}
+.toolmodal__dots{display:flex;gap:5px;flex:none}
+.toolmodal__dots i{width:8px;height:8px;border-radius:50%;background:var(--line)}
+.toolmodal__title{
+  font-family:var(--mono);font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.toolmodal__close{
+  margin-left:auto;flex:none;
+  width:2rem;height:2rem;display:grid;place-items:center;
+  font-family:var(--mono);font-size:.9rem;line-height:1;
+  border:1px solid var(--line);border-radius:2px;color:var(--muted);
+  background:transparent;cursor:pointer;transition:border-color .3s ease,color .3s ease;
+}
+.toolmodal__close:hover,.toolmodal__close:focus-visible{border-color:var(--chrome);color:var(--chrome)}
+.toolmodal__body{flex:1;position:relative;overflow:auto}
+.toolmodal__body iframe{width:100%;height:100%;border:0;display:block}
+
+/* Leistungsdaten — die Signatur der Seite */
+.specs{border-top:1px solid var(--line)}
+.spec{
+  display:flex;align-items:baseline;justify-content:space-between;gap:1rem;
+  padding-block:1.15rem;border-bottom:1px solid var(--line);
+}
+.spec__key{font-family:var(--mono);font-size:.68rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.spec__val{
+  font-family:var(--display);
+  font-variation-settings:"wdth" 96,"wght" 700;
+  font-size:clamp(1.6rem,3.4vw,2.5rem);
+  letter-spacing:-.02em;font-variant-numeric:tabular-nums;
+  white-space:nowrap;
+}
+.spec__val small{font-size:.4em;font-weight:400;color:var(--muted);margin-left:.35em;letter-spacing:.06em}
+
+.chips{display:flex;flex-wrap:wrap;gap:.4rem;list-style:none;padding:0;margin:1.8rem 0 0}
+.chips li{
+  font-family:var(--mono);font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;
+  border:1px solid var(--line);border-radius:999px;padding:.3rem .8rem;color:var(--muted);
+}
+
+.actions{display:flex;flex-wrap:wrap;gap:.7rem;margin-top:1.8rem}
+.btn{
+  position:relative;overflow:hidden;
+  font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;
+  padding:.85rem 1.6rem;border:1px solid var(--line);border-radius:2px;
+  transition:border-color .35s ease,color .35s ease;
+}
+.btn span{position:relative;z-index:1}
+.btn::before{
+  content:"";position:absolute;inset:0;background:var(--chrome);
+  transform:translateY(101%);transition:transform .45s var(--ease);
+}
+.btn:hover,.btn:focus-visible{border-color:var(--chrome);color:var(--void)}
+.btn:hover::before,.btn:focus-visible::before{transform:translateY(0)}
+.btn--hot{border-color:var(--ember);color:var(--ember)}
+.btn--hot::before{background:var(--ember)}
+.btn--hot:hover,.btn--hot:focus-visible{color:var(--void);border-color:var(--ember)}
+
+/* ══════════ Laufband ══════════ */
+.ticker{
+  border-block:1px solid var(--line);
+  padding-block:1.5rem;overflow:hidden;white-space:nowrap;
+  margin-block:clamp(4rem,9vw,8rem);
+}
+.ticker__row{display:inline-flex;gap:3.5rem;animation:slide 38s linear infinite;padding-right:3.5rem}
+.ticker__row span{
+  font-family:var(--display);font-variation-settings:"wdth" 84,"wght" 600;
+  font-size:clamp(1.1rem,2.4vw,1.9rem);text-transform:uppercase;
+  color:rgba(243,245,247,.32);
+}
+.ticker__row span::after{content:"·";margin-left:3.5rem;color:var(--xenon)}
+@keyframes slide{to{transform:translateX(-50%)}}
+.ticker:hover .ticker__row{animation-play-state:paused}
+
+/* ══════════ Notizen ══════════ */
+.posts{list-style:none;padding:0;margin:0;border-top:1px solid var(--line)}
+.posts li{border-bottom:1px solid var(--line);position:relative;overflow:hidden}
+.posts li::before{
+  content:"";position:absolute;inset:0;background:var(--surface);
+  transform:translateY(100%);transition:transform .5s var(--ease);
+}
+.posts li:hover::before,.posts li:focus-within::before{transform:translateY(0)}
+.posts a{
+  position:relative;z-index:1;display:grid;gap:.35rem;
+  padding:clamp(1.5rem,3vw,2.4rem) clamp(0rem,2vw,1.6rem);
+  transition:padding-left .5s var(--ease);
+}
+.posts li:hover a,.posts li:focus-within a{padding-left:clamp(1rem,3vw,2.6rem)}
+.posts time{font-family:var(--mono);font-size:.68rem;letter-spacing:.16em;color:var(--muted)}
+.posts h3{
+  font-family:var(--display);font-variation-settings:"wdth" 100,"wght" 600;
+  font-size:clamp(1.2rem,2.8vw,2rem);letter-spacing:-.02em;margin:0;
+}
+.posts p{margin:0;color:var(--muted);font-size:.92rem;max-width:58ch}
+@media (min-width:820px){
+  .posts a{grid-template-columns:9rem 1fr;gap:0 2.5rem;align-items:baseline}
+  .posts time{grid-row:span 2}
+}
+
+/* ══════════ Fuß ══════════ */
+.outro{padding-block:2.5rem 3rem}
+.colophon{
+  display:flex;flex-wrap:wrap;gap:1rem;justify-content:space-between;
+  border-top:1px solid var(--line);padding-top:1.5rem;
+  font-family:var(--mono);font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);
+}
+
+:focus-visible{outline:1px solid var(--xenon);outline-offset:4px}
+
+/* ══════════ Einblenden ══════════ */
+.reveal{opacity:0;transform:translateY(26px);transition:opacity .95s var(--ease),transform .95s var(--ease)}
+.reveal.on{opacity:1;transform:none}
+.reveal[data-delay="1"]{transition-delay:.1s}
+.reveal[data-delay="2"]{transition-delay:.2s}
+
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  .reveal{opacity:1;transform:none}
+  .headline .i{transform:none}
+  .hero .label,.hero__foot{opacity:1}
+  .manifest__text span{color:var(--chrome)}
+}
+</style>
+</head>
+
+<body>
+
+<div class="progress" id="progress"></div>
+
+<header class="nav">
+  <div class="wrap nav__inner">
+    <a class="nav__mark" href="#top">Markus Strohmaier</a>
+    <nav class="nav__links" aria-label="Hauptnavigation">
+      <a href="#werkzeuge">Werkzeuge</a>
+      <a href="#kontakt">Kontakt</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- ══════════ HERO ══════════ -->
+  <section class="hero" id="hero">
+    <div class="hero__grid"></div>
+    <div class="hero__glow" id="glow"></div>
+    <div class="hero__sheen"></div>
+
+    <div class="wrap hero__inner">
+      <p class="label">Vier Werkzeuge · Gebaut in Paldau</p>
+
+      <!-- Wort für Wort animiert. Neues Wort = neuer .w-Block. -->
+      <h1 class="headline">
+        <span class="w"><span class="i" style="animation-delay:.30s">Ich</span></span>
+        <span class="w"><span class="i" style="animation-delay:.40s">baue,</span></span>
+        <span class="w"><span class="i" style="animation-delay:.50s">was</span></span>
+        <span class="w"><span class="i" style="animation-delay:.60s">mir</span></span>
+        <span class="w"><span class="i" style="animation-delay:.70s">fehlt</span></span>
+      </h1>
+
+      <div class="hero__foot">
+        <p>Jedes davon entstand, weil mich etwas zum dritten Mal genervt hat. Jedes ist seitdem täglich im Einsatz.</p>
+        <div class="scroller"><i></i> Scrollen</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ MANIFEST — hellt sich beim Scrollen Wort für Wort auf ══════════ -->
+  <section class="manifest wrap">
+    <p class="manifest__text" data-lit>Ich baue Werkzeuge für genau eine Person: mich. Dass sie danach auch für andere funktionieren, ist ein Nebeneffekt.</p>
+  </section>
+
+  <!-- ══════════ WERKZEUGE ══════════
+       Neues Projekt = kompletten <article class="tool"> Block kopieren.
+       Zahlen im Datenblatt: data-count = Zielwert. Einheit ins <small>.
+  ══════════════════════════════════════ -->
+  <section class="wrap" id="werkzeuge">
+    <div class="rail">
+      <h2>Werkzeuge</h2>
+      <span>04 / 04 gezeigt</span>
+    </div>
+
+    <!-- ───── Projekt 01 · MaxlDruck ───── -->
+    <article class="tool">
+      <p class="tool__index reveal">01</p>
+      <h3 class="tool__name reveal" data-delay="1">MaxlDruck</h3>
+      <p class="tool__friction reveal" data-delay="2">
+        <b>Problem —</b> Nach jedem Druckauftrag Filament, Strom und Maschinenzeit
+        im Kopf zusammenrechnen. Und zwei Wochen später nicht mehr wissen,
+        wer davon schon gezahlt hat.
+      </p>
+
+      <div class="tool__split">
+        <!-- ══ LIVE-EINBETTUNG ══
+             data-live  = Adresse deines laufenden Tools
+             data-host  = was im Rahmen angezeigt wird (kosmetisch)
+             Erreichbar → Tool läuft echt im Rahmen.
+             Nicht erreichbar → automatisch der Fallback unten.
+        ══════════════════════ -->
+        <!-- data-width: Schreibtisch-Werkzeug. Über dem 1100px-Umbruch der
+             App, damit die Übersicht mehrspaltig bleibt statt zu einer
+             langen Spalte zusammenzufallen. -->
+        <figure class="stage stage--live reveal"
+                data-live="druck/"
+                data-width="1200"
+                data-host="maxldruck.local">
+          <div class="stage__chrome">
+            <span class="stage__dots"><i></i><i></i><i></i></span>
+            <span class="stage__url" data-url>maxldruck.local</span>
+            <span class="stage__status" data-status data-state="wait">Verbinde</span>
+          </div>
+
+          <div class="stage__viewport">
+            <button class="stage__shield" type="button" aria-label="Demo aktivieren">
+              <b>Klicken zum Bedienen</b>
+            </button>
+          </div>
+
+          <!-- Kein Ersatzbild nötig: In dieser Fassung liegt die Demo als
+               Datei daneben und ist immer erreichbar. Das frühere
+               maxldruck-dashboard.png gab es nie und wurde bei jedem
+               Seitenaufruf vergeblich angefordert. -->
+        </figure>
+
+        <div class="reveal" data-delay="1">
+          <div class="specs">
+            <div class="spec">
+              <span class="spec__key">Angebot kalkuliert in</span>
+              <span class="spec__val" data-count="20">0<small>sek</small></span>
+            </div>
+            <div class="spec">
+              <span class="spec__key">Module</span>
+              <span class="spec__val" data-count="7">0</span>
+            </div>
+            <div class="spec">
+              <span class="spec__key">Zeilen Code</span>
+              <span class="spec__val" data-count="4437">0</span>
+            </div>
+            <div class="spec">
+              <span class="spec__key">Bauzeit</span>
+              <span class="spec__val" data-count="36">0<small>std</small></span>
+            </div>
+          </div>
+
+          <ul class="chips"><li>Express</li><li>SQLite</li><li>jsPDF</li></ul>
+
+          <div class="actions">
+            <a class="btn btn--hot" href="druck/" target="_blank" rel="noopener"><span>Demo ansehen</span></a>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- ───── Projekt 02 · Dienstplan → Kalender ───── -->
+    <article class="tool tool--flip">
+      <p class="tool__index reveal">02</p>
+      <h3 class="tool__name reveal" data-delay="1">Dienstplan → Kalender</h3>
+      <p class="tool__friction reveal" data-delay="2">
+        <b>Problem —</b> Jeden Monat den Dienstplan als PDF bekommen und
+        jede einzelne Schicht von Hand in den Kalender abtippen.
+      </p>
+
+      <div class="tool__split">
+        <!-- Läuft komplett im Browser (PDF-Parsing + ICS-Export clientseitig) —
+             deshalb direkt eingebettet statt live verbunden. Funktioniert
+             identisch lokal wie später online. -->
+        <figure class="stage stage--embed reveal">
+          <div class="stage__chrome">
+            <span class="stage__dots"><i></i><i></i><i></i></span>
+            <span class="stage__url">dienstplan-kalender.html</span>
+            <span class="stage__status" data-state="live">Bereit</span>
+          </div>
+          <div class="stage__viewport">
+            <iframe src="dienstplan-kalender.html" title="Dienstplan → Kalender – Live-Demo" loading="lazy"></iframe>
+            <button class="stage__shield" type="button" aria-label="Demo aktivieren">
+              <b>Klicken zum Bedienen</b>
+            </button>
+          </div>
+        </figure>
+
+        <div class="reveal" data-delay="1">
+          <div class="specs">
+            <div class="spec">
+              <span class="spec__key">Schicht eintragen in</span>
+              <span class="spec__val" data-count="3">0<small>sek</small></span>
+            </div>
+            <div class="spec">
+              <span class="spec__key">Formate gelesen</span>
+              <span class="spec__val" data-count="2">0</span>
+            </div>
+            <!-- ↓ Diese zwei Werte kenne ich nicht — bitte ersetzen -->
+            <div class="spec">
+              <span class="spec__key">Zeilen Code</span>
+              <span class="spec__val" data-count="650">0</span>
+            </div>
+            <div class="spec">
+              <span class="spec__key">Bauzeit</span>
+              <span class="spec__val" data-count="4">0<small>std</small></span>
+            </div>
+          </div>
+
+          <ul class="chips"><li>Vanilla JS</li><li>pdf.js</li><li>ICS</li></ul>
+
+          <div class="actions">
+            <a class="btn btn--hot" href="dienstplan-kalender.html"><span>Ausprobieren</span></a>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- ───── Projekt 03 · Freundetracker ───── -->
+    <article class="tool">
+      <p class="tool__index reveal">03</p>
+      <h3 class="tool__name reveal" data-delay="1">Freundetracker</h3>
+      <p class="tool__friction reveal" data-delay="2">
+        <b>Problem —</b> Nach dem Wochenende mit Freunden geht das große Nachrechnen los:
+        wer hat das Frühstück gezahlt, wer schuldet noch was vom Sprit —
+        und am Ende zahlt eh wieder derselbe drauf.
+      </p>
+
+      <div class="tool__split">
+        <!-- data-width: fürs Handy gebaut (--page-max: 520px). Eine Leinwand
+             in dieser Breite zeigt die App fast 1:1 statt sie auf ein
+             Drittel zu schrumpfen. -->
+        <figure class="stage stage--live reveal"
+                data-live="freunde/"
+                data-width="540"
+                data-host="freundetracker.local">
+          <div class="stage__chrome">
+            <span class="stage__dots"><i></i><i></i><i></i></span>
+            <span class="stage__url" data-url>freundetracker.local</span>
+            <span class="stage__status" data-status data-state="wait">Verbinde</span>
+          </div>
+
+          <div class="stage__viewport">
+            <button class="stage__shield" type="button" aria-label="Demo aktivieren">
+              <b>Klicken zum Bedienen</b>
+            </button>
+          </div>
+
+          <div class="stage__fallback">
+            <!-- <video src="demos/freundetracker.mp4" poster="demos/freundetracker.jpg"
+                      autoplay muted loop playsinline></video> -->
+            <div class="stage__empty">
+              <b>Screen-Recording hier</b>
+              <span>8–15 Sekunden · MP4 stumm · 16:10</span>
+            </div>
+          </div>
+        </figure>
+
+        <div class="reveal" data-delay="1">
+          <div class="specs">
+            <div class="spec">
+              <span class="spec__key">Gruppen im Blick</span>
+              <span class="spec__val" data-count="14">0</span>
+            </div>
+            <div class="spec">
+              <span class="spec__key">Ausgaben / Monat</span>
+              <span class="spec__val" data-count="46">0</span>
+            </div>
+            <div class="spec">
+              <span class="spec__key">Zeilen Code</span>
+              <span class="spec__val" data-count="11486">0</span>
+            </div>
+            <div class="spec">
+              <span class="spec__key">Bauzeit</span>
+              <span class="spec__val" data-count="24">0<small>std</small></span>
+            </div>
+          </div>
+
+          <ul class="chips"><li>Node.js</li><li>SQLite</li></ul>
+
+          <div class="actions">
+            <a class="btn btn--hot" href="freunde/" target="_blank" rel="noopener"><span>Demo ansehen</span></a>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- ───── Projekt 04 · PictureSort ───── -->
+    <article class="tool tool--flip">
+      <p class="tool__index reveal">04</p>
+      <h3 class="tool__name reveal" data-delay="1">PictureSort</h3>
+      <p class="tool__friction reveal" data-delay="2">
+        <b>Problem —</b> Nach dem Urlaub liegen Fotos und Videos von drei Geräten
+        in einem einzigen Ordner. Nach Tagen sortieren macht man genau einmal
+        von Hand — und dann nie wieder.
+      </p>
+
+      <div class="tool__split">
+        <!-- Läuft komplett im Browser: keine Datei geht ins Netz, es wird nur
+             gelesen und kopiert. Deshalb direkt eingebettet statt live
+             verbunden — wie beim Dienstplan. data-width: eigene Leinwand,
+             weil das Layout auf 1080px ausgelegt ist. -->
+        <figure class="stage stage--embed reveal" data-width="900">
+          <div class="stage__chrome">
+            <span class="stage__dots"><i></i><i></i><i></i></span>
+            <span class="stage__url">picturesort</span>
+            <span class="stage__status" data-state="live">Bereit</span>
+          </div>
+          <div class="stage__viewport">
+            <iframe src="fotos/" title="PictureSort – Live-Demo" loading="lazy"></iframe>
+            <button class="stage__shield" type="button" aria-label="Demo aktivieren">
+              <b>Klicken zum Bedienen</b>
+            </button>
+          </div>
+        </figure>
+
+        <div class="reveal" data-delay="1">
+          <div class="specs">
+            <div class="spec">
+              <span class="spec__key">Datumsquellen</span>
+              <span class="spec__val" data-count="4">0</span>
+            </div>
+            <div class="spec">
+              <span class="spec__key">Gruppierungen</span>
+              <span class="spec__val" data-count="5">0</span>
+            </div>
+            <div class="spec">
+              <span class="spec__key">Zeilen Code</span>
+              <span class="spec__val" data-count="1955">0</span>
+            </div>
+            <div class="spec">
+              <span class="spec__key">Bauzeit</span>
+              <span class="spec__val" data-count="2">0<small>std</small></span>
+            </div>
+          </div>
+
+          <ul class="chips"><li>Vanilla JS</li><li>EXIF</li><li>ZIP64</li></ul>
+
+          <div class="actions">
+            <a class="btn btn--hot" href="fotos/" target="_blank" rel="noopener"><span>Ausprobieren</span></a>
+          </div>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <div class="ticker" aria-hidden="true">
+    <div class="ticker__row" id="ticker">
+      <span>React</span><span>TypeScript</span><span>Python</span><span>Claude API</span>
+      <span>SQLite</span><span>Cloudflare</span><span>Whisper</span><span>Tailwind</span>
+    </div>
+  </div>
+
+  <!-- Der Notizen-Bereich ist vorerst draussen: Die drei Eintraege
+       verlinkten auf notizen/beispiel.html, die es nie gab – drei tote
+       Links auf der Startseite. Kommt zurueck, sobald es echte Notizen
+       gibt (Abschnitt + Menuepunkt wieder einfuegen). -->
+
+</main>
+
+<footer class="wrap outro" id="kontakt">
+  <div class="colophon">
+    <span>© 2026 Markus Strohmaier</span>
+    <span>Gebaut in Paldau</span>
+  </div>
+</footer>
+
+<div class="toolmodal" id="toolmodal" role="dialog" aria-modal="true" aria-hidden="true">
+  <div class="toolmodal__panel">
+    <div class="toolmodal__bar">
+      <span class="toolmodal__dots"><i></i><i></i><i></i></span>
+      <span class="toolmodal__title" id="toolmodalTitle"></span>
+      <button class="toolmodal__close" id="toolmodalClose" type="button" aria-label="Schließen">✕</button>
+    </div>
+    <div class="toolmodal__body" id="toolmodalBody"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ── Manifest: Wörter in eigene Spans zerlegen ── */
+  var lit = document.querySelector('[data-lit]');
+  if (lit){
+    lit.innerHTML = lit.textContent.trim().split(/\s+/)
+      .map(function(w){ return '<span>' + w + '</span>'; }).join(' ');
+  }
+  function litText(){
+    if (!lit || reduced) return;
+    var words = lit.querySelectorAll('span');
+    var r = lit.getBoundingClientRect();
+    var start = window.innerHeight * 0.85;
+    var end = window.innerHeight * 0.25;
+    var p = Math.min(Math.max((start - r.top) / (start - end), 0), 1);
+    var cut = Math.floor(p * words.length * 1.15);
+    words.forEach(function(w, i){ w.classList.toggle('lit', i < cut); });
+  }
+
+  /* ── Fortschrittsbalken ── */
+  var bar = document.getElementById('progress');
+  var ticking = false;
+  function onScroll(){
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(function(){
+      var max = document.documentElement.scrollHeight - window.innerHeight;
+      bar.style.transform = 'scaleX(' + (max > 0 ? window.scrollY / max : 0) + ')';
+      litText();
+      ticking = false;
+    });
+  }
+  window.addEventListener('scroll', onScroll, { passive:true });
+  window.addEventListener('resize', onScroll, { passive:true });
+
+  /* ── Einblenden ── */
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if (!e.isIntersecting) return;
+      e.target.classList.add('on');
+      io.unobserve(e.target);
+    });
+  }, { threshold:0.2, rootMargin:'0px 0px -8% 0px' });
+  document.querySelectorAll('.reveal').forEach(function(el){ io.observe(el); });
+
+  /* ── Zahlen zählen hoch ── */
+  function countUp(el){
+    var target = parseFloat(el.dataset.count);
+    var unit = el.querySelector('small');
+    var suffix = unit ? unit.outerHTML : '';
+    if (reduced){ el.innerHTML = target.toLocaleString('de-DE') + suffix; return; }
+    var dur = 1500, t0 = performance.now();
+    (function step(now){
+      var p = Math.min((now - t0) / dur, 1);
+      var eased = 1 - Math.pow(1 - p, 4);
+      el.innerHTML = Math.round(target * eased).toLocaleString('de-DE') + suffix;
+      if (p < 1) requestAnimationFrame(step);
+    })(t0);
+  }
+  var ioNum = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if (!e.isIntersecting) return;
+      countUp(e.target);
+      ioNum.unobserve(e.target);
+    });
+  }, { threshold:0.6 });
+  document.querySelectorAll('[data-count]').forEach(function(el){ ioNum.observe(el); });
+
+  /* ── Eingebettete Tools: erst aktivieren, dann als großes Fenster ── */
+  var modal = document.getElementById('toolmodal');
+  var modalBody = document.getElementById('toolmodalBody');
+  var modalTitle = document.getElementById('toolmodalTitle');
+  var modalClose = document.getElementById('toolmodalClose');
+  var modalReturn = null; // { frame, vp, shield } – wohin das iframe beim Schließen zurückkommt
+
+  function openToolModal(fig, vp, frame, shield, onReturn){
+    // Immer nur EIN Werkzeug bedienbar: Ein noch offenes Fenster wird zuerst
+    // ordentlich geschlossen, damit sein Rahmen zurück in seine Vorschau
+    // wandert und seinen Klick-Schutz wiederbekommt.
+    closeToolModal();
+
+    var name = fig.closest('.tool');
+    modalTitle.textContent = name ? name.querySelector('.tool__name').textContent.trim() : '';
+    modalReturn = { frame: frame, vp: vp, shield: shield, onReturn: onReturn, prevTransform: frame.style.transform };
+    // Feste Vorschau-Skalierung aufheben – im großen Fenster füllt das
+    // iframe den Kasten komplett, statt klein darin zu schweben.
+    frame.style.transform = 'none';
+    frame.style.position = 'static';
+    frame.style.width = '100%';
+    frame.style.height = '100%';
+    modalBody.appendChild(frame);
+    watchFrameFocus(frame, true);
+    modal.classList.add('open');
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+    modalClose.focus();
+  }
+  function closeToolModal(){
+    if (!modal.classList.contains('open')) return;
+    var r = modalReturn;
+    if (r){
+      watchFrameFocus(r.frame, false);
+      r.vp.insertBefore(r.frame, r.shield);
+      r.frame.style.position = '';
+      r.frame.style.width = '';
+      r.frame.style.height = '';
+      // Klick-Schutz zurück auf die Vorschau legen. Ohne das bliebe die
+      // Demo für immer bedienbar: Beim Vorbeiscrollen fängt dann das
+      // eingebettete Werkzeug das Mausrad ab, und statt der Seite scrollt
+      // die App in ihrem Rahmen. Nach zwei geöffneten Demos gäbe es zwei
+      // solcher Fallen auf der Seite.
+      r.shield.classList.remove('off');
+      if (r.onReturn) r.onReturn();
+      else r.frame.style.transform = r.prevTransform || '';
+    }
+    modalReturn = null;
+    modal.classList.remove('open');
+    modal.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+  }
+  modalClose.addEventListener('click', closeToolModal);
+  modal.addEventListener('click', function(e){ if (e.target === modal) closeToolModal(); });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') closeToolModal(); });
+  /* Wird eine andere Anwendung geöffnet, soll das Demo-Fenster zurück in den
+     Ausgangszustand springen.
+
+     Die Falle dabei: Ein Klick IN das eingebettete Werkzeug schiebt den Fokus
+     in dessen Rahmen – und das löst am Elternfenster ebenfalls ein 'blur' aus.
+     Ungeprüft geschlossen hieße das: Sobald jemand in der Demo etwas anklickt,
+     fliegt er wieder heraus. Genau das ist passiert.
+
+     Deshalb wird beim blur erst nachgesehen, wo der Fokus gelandet ist:
+     steckt er noch bei uns (im Dokument oder in einem unserer Rahmen), bleibt
+     das Fenster offen. Erst wenn er das Browserfenster ganz verlassen hat,
+     wird geschlossen. */
+  // Arbeitet der Besucher gerade IM eingebetteten Werkzeug? Wird an dessen
+  // eigenen Fokus-Ereignissen mitgeführt. Ein bloßer Blick auf
+  // document.activeElement reichte nicht: Nach einem Klick ins Werkzeug bleibt
+  // dort dauerhaft das IFRAME stehen – auch dann noch, wenn längst zu einer
+  // anderen Anwendung gewechselt wurde. Das Fenster wäre dann nie mehr
+  // zugegangen.
+  var frameHatFokus = false;
+
+  function closeIfFocusLeft(){
+    // Ein Tick warten: Unmittelbar im blur steht der neue Fokus noch nicht fest.
+    setTimeout(function(){
+      if (document.hasFocus()) return;   // Fokus noch bei uns (schließt Rahmen ein)
+      if (frameHatFokus) return;         // im Werkzeug wird gerade gearbeitet
+      closeToolModal();
+    }, 0);
+  }
+
+  window.addEventListener('blur', closeIfFocusLeft);
+
+  function frameFokusAn(){ frameHatFokus = true; }
+  function frameFokusAus(){ frameHatFokus = false; closeIfFocusLeft(); }
+
+  /* Am Rahmen selbst mithorchen – aus zwei Gründen:
+     1. Der Klick hinein meldet sich hier als 'focus', und nur daran ist er
+        vom Wechsel zu einer fremden Anwendung zu unterscheiden.
+     2. Wer im Werkzeug arbeitet und dann wegwechselt, löst am Elternfenster
+        kein weiteres 'blur' mehr aus – der Rahmen meldet es dafür. */
+  function watchFrameFocus(frame, an){
+    try {
+      var w = frame.contentWindow;
+      if (!w) return;
+      if (an){
+        w.addEventListener('focus', frameFokusAn);
+        w.addEventListener('blur', frameFokusAus);
+      } else {
+        w.removeEventListener('focus', frameFokusAn);
+        w.removeEventListener('blur', frameFokusAus);
+        frameHatFokus = false;
+      }
+    } catch (e) { /* fremde Herkunft – dann eben nur das Elternfenster */ }
+  }
+  // Tab wirklich verlassen (minimiert, anderer Tab): eindeutiger Fall, und ein
+  // Klick ins eingebettete Werkzeug löst das nie aus.
+  document.addEventListener('visibilitychange', function(){ if (document.hidden) closeToolModal(); });
+
+  /* Sammelstelle für alle Anpass-Funktionen: Ändert sich die Fenstergröße,
+     werden sie der Reihe nach aufgerufen. Steht bewusst VOR beiden Schleifen
+     unten – sonst wäre die Liste beim Eintragen noch nicht angelegt. */
+  var liveFrames = [];
+
+  document.querySelectorAll('.stage--embed').forEach(function(fig){
+    var vp = fig.querySelector('.stage__viewport');
+    var frame = vp.querySelector('iframe');
+    var shield = fig.querySelector('.stage__shield');
+    if (!frame || !shield) return;
+
+    // Ohne data-width füllt das iframe den Kasten von selbst (reines CSS) –
+    // dann gibt es hier nichts zu rechnen. Mit data-width gilt dieselbe
+    // Leinwand-Logik wie bei den live eingebundenen Werkzeugen.
+    var fit = null;
+    if (fig.dataset.width){
+      fit = function(){
+        if (!vp.clientWidth) return;
+        if (frame.parentElement !== vp) return;   // steckt gerade im großen Fenster
+        var canvas = Number(fig.dataset.width);
+        frame.style.width  = canvas + 'px';
+        frame.style.height = Math.round(canvas * (vp.clientHeight / vp.clientWidth)) + 'px';
+        frame.style.transform = 'scale(' + (vp.clientWidth / canvas) + ')';
+      };
+      fit();
+      frame.addEventListener('load', fit);
+      liveFrames.push(fit);
+    }
+
+    shield.addEventListener('click', function(){
+      shield.classList.add('off');
+      openToolModal(fig, vp, frame, shield, fit);
+    });
+  });
+
+  /* ── Live-Einbettung ──
+     Lädt das Tool erst, wenn der Block ins Bild kommt. Antwortet es nicht
+     innerhalb von 6 Sekunden, wird still auf die Aufzeichnung umgeschaltet. */
+
+  function setupLive(fig){
+    var url    = fig.dataset.live;
+    var vp     = fig.querySelector('.stage__viewport');
+    var status = fig.querySelector('[data-status]');
+    var shield = fig.querySelector('.stage__shield');
+    var urlEl  = fig.querySelector('[data-url]');
+    var frame, timer, done = false;
+
+    if (urlEl && fig.dataset.host) urlEl.textContent = fig.dataset.host;
+
+    function fail(text){
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      fig.classList.add('is-off');
+      status.dataset.state = 'off';
+      status.textContent = text || 'Offline · Aufzeichnung';
+    }
+
+    function mount(){
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      frame = document.createElement('iframe');
+      frame.title = 'Live-Demo';
+      frame.setAttribute('sandbox', 'allow-scripts allow-forms allow-popups allow-same-origin');
+      frame.addEventListener('load', function(){
+        fig.classList.add('is-ready');
+        frame.classList.add('on');
+        status.dataset.state = 'live';
+        status.textContent = 'Live';
+        fit();
+      });
+      vp.insertBefore(frame, shield);
+      frame.src = url;
+      fit();
+      liveFrames.push(fit);
+      if (shield){
+        shield.addEventListener('click', function(){
+          shield.classList.add('off');
+          openToolModal(fig, vp, frame, shield, fit);
+        });
+      }
+    }
+
+    /* Das eingebettete Werkzeug bekommt eine eigene Leinwand und wird als
+       Ganzes auf den Rahmen verkleinert.
+
+       Die Breite steht als data-width am <figure>, weil sie pro Werkzeug
+       verschieden sein MUSS: MaxlDruck ist ein Schreibtisch-Werkzeug und
+       braucht Platz für Seitenleiste und mehrspaltige Übersicht, der
+       FreundeTracker ist fürs Handy gebaut und bricht seinen Inhalt bei
+       520px um. Beide auf dieselbe 1440er-Leinwand zu stellen, ließ vom
+       FreundeTracker eine schmale Spalte in einer großen Leere übrig.
+
+       Die Höhe wird aus dem tatsächlichen Seitenverhältnis des Rahmens
+       gerechnet, nicht fest gesetzt – so füllt die Leinwand den Rahmen
+       immer randlos, egal wie breit die Seite gerade ist. */
+    function fit(){
+      if (!frame || !vp.clientWidth) return;
+      // Steckt der Rahmen gerade im großen Fenster, gehört er dort dem Modal
+      // und füllt es zur Gänze. Ohne diese Bremse würde das Ausblenden der
+      // Bildlaufleiste beim Öffnen ein resize auslösen – und fit() würde die
+      // Verkleinerung mitten im geöffneten Fenster wieder darüberschreiben.
+      if (frame.parentElement !== vp) return;
+      var canvas = Number(fig.dataset.width) || 1440;
+      frame.style.width  = canvas + 'px';
+      frame.style.height = Math.round(canvas * (vp.clientHeight / vp.clientWidth)) + 'px';
+      frame.style.transform = 'scale(' + (vp.clientWidth / canvas) + ')';
+    }
+
+    // Ein HTTPS-Dokument darf keine http://-Seite einbetten. Gar nicht erst versuchen.
+    if (location.protocol === 'https:' && /^http:\/\//i.test(url)){
+      fail('Nur im Heimnetz');
+      return;
+    }
+
+    // Erst per fetch pruefen, ob das Ziel ueberhaupt erreichbar ist. Ein <iframe>
+    // feuert 'load' auch fuer die interne Fehlerseite bei einer nicht erreichbaren
+    // fremden Adresse — das laesst sich von aussen nicht unterscheiden. fetch()
+    // schlaegt bei Verbindungsfehlern dagegen zuverlaessig fehl.
+    var ac = new AbortController();
+    timer = setTimeout(function(){ ac.abort(); fail(); }, 5000);
+    fetch(url, { mode: 'no-cors', signal: ac.signal })
+      .then(mount)
+      .catch(function(){ fail(); });
+  }
+
+  var ioLive = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if (!e.isIntersecting) return;
+      ioLive.unobserve(e.target);
+      setupLive(e.target);
+    });
+  }, { rootMargin:'250px' });
+  document.querySelectorAll('[data-live]').forEach(function(el){ ioLive.observe(el); });
+
+  window.addEventListener('resize', function(){
+    liveFrames.forEach(function(fit){ fit(); });
+  }, { passive:true });
+
+  /* ── Lichtkegel folgt der Maus (nur Zeigegeräte) ── */
+  var hero = document.getElementById('hero');
+  var glow = document.getElementById('glow');
+  if (hero && glow && !reduced && window.matchMedia('(pointer:fine)').matches){
+    hero.addEventListener('pointermove', function(e){
+      var r = hero.getBoundingClientRect();
+      glow.style.setProperty('--mx', ((e.clientX - r.left) / r.width * 100) + '%');
+      glow.style.setProperty('--my', ((e.clientY - r.top) / r.height * 100) + '%');
+    });
+  }
+
+  /* ── Laufband nahtlos: Inhalt einmal klonen ── */
+  var ticker = document.getElementById('ticker');
+  if (ticker && !reduced) ticker.innerHTML += ticker.innerHTML;
+
+  onScroll();
+})();
+</script>
+
+</body>
+</html>
